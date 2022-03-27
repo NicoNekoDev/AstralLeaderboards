@@ -1,0 +1,11 @@
+name: AstralLeaderboards
+version: ${project.version}
+main: ro.nico.leaderboard.AstralLeaderboardsPlugin
+api-version: 1.13
+authors: [ nico ]
+softdepend:
+  - PlaceholderAPI
+  - Vault
+commands:
+  astrallb:
+    description: AstralLeaderboards command
