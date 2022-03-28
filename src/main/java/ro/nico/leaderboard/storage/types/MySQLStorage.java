@@ -1,7 +1,7 @@
 package ro.nico.leaderboard.storage.types;
 
 import io.github.NicoNekoDev.SimpleTuples.Pair;
-import io.github.NicoNekoDev.SimpleTuples.Triplet;
+import io.github.NicoNekoDev.SimpleTuples.Quartet;
 import org.bukkit.configuration.file.YamlConfiguration;
 import ro.nico.leaderboard.AstralLeaderboardsPlugin;
 import ro.nico.leaderboard.api.Board;
@@ -83,8 +83,8 @@ public class MySQLStorage extends Storage {
     }
 
     @Override
-    public LinkedList<Triplet<Pair<String, UUID>, String, Map<String, String>>> getPlayerDataForBoard(Board board, SQLDateType dateType) throws SQLException {
-        LinkedList<Triplet<Pair<String, UUID>, String, Map<String, String>>> result = new LinkedList<>();
+    public LinkedList<Quartet<Pair<String, UUID>, String, Map<String, String>, Integer>> getPlayersDataForBoard(Board board, SQLDateType dateType) throws SQLException {
+        LinkedList<Quartet<Pair<String, UUID>, String, Map<String, String>, Integer>> result = new LinkedList<>();
         String query = board.isReversed() ?
                 switch (dateType) {
                     case ALLTIME -> "SELECT player_name, player_uuid, sorter, trackers FROM ? WHERE `board_id` = ? ORDER BY `sorter` DESC LIMIT ?;";
@@ -111,7 +111,7 @@ public class MySQLStorage extends Storage {
                     Pair<String, UUID> player = new Pair<>(resultSet.getString("player_name"), UUID.fromString(resultSet.getString("player_uuid")));
                     String sorter = resultSet.getString("sorter");
                     Map<String, String> trackers = GsonUtil.convertJsonToMap(GsonUtil.fromBase64(resultSet.getString("trackers"))); // it converts the base64 string to a map using gson
-                    result.add(new Triplet<>(player, sorter, trackers));
+                    result.add(Quartet.of(player, sorter, trackers, -1)); // todo: rank
                 }
             }
         }

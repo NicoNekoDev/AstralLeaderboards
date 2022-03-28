@@ -1,6 +1,7 @@
 package ro.nico.leaderboard.storage;
 
 import io.github.NicoNekoDev.SimpleTuples.Pair;
+import io.github.NicoNekoDev.SimpleTuples.Quartet;
 import io.github.NicoNekoDev.SimpleTuples.Triplet;
 import org.bukkit.configuration.file.YamlConfiguration;
 import ro.nico.leaderboard.AstralLeaderboardsPlugin;
@@ -10,9 +11,7 @@ import ro.nico.leaderboard.storage.types.SQLiteStorage;
 import ro.nico.leaderboard.storage.types.Storage;
 
 import java.sql.SQLException;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class StorageConfiguration extends Storage {
     private Storage storage;
@@ -44,9 +43,17 @@ public class StorageConfiguration extends Storage {
     }
 
     @Override
-    public LinkedList<Triplet<Pair<String, UUID>, String, Map<String, String>>> getPlayerDataForBoard(Board board, SQLDateType type) throws SQLException {
+    public LinkedList<Quartet<Pair<String, UUID>, String, Map<String, String>, Integer>> getPlayersDataForBoard(Board board, SQLDateType type) throws SQLException {
         if (this.storage != null)
-            return this.storage.getPlayerDataForBoard(board, type);
+            return this.storage.getPlayersDataForBoard(board, type);
         return new LinkedList<>();
     }
+
+    @Override
+    public Map<Pair<String, UUID>, Triplet<String, Map<String, String>, Integer>> getOnlinePlayersDataForBoard(Set<Pair<String, UUID>> players, Board board, SQLDateType dateType) throws SQLException {
+        if (this.storage != null)
+            return this.storage.getOnlinePlayersDataForBoard(players, board, dateType);
+        return new HashMap<>();
+    }
+
 }

@@ -1,6 +1,7 @@
 package ro.nico.leaderboard.storage.types;
 
 import io.github.NicoNekoDev.SimpleTuples.Pair;
+import io.github.NicoNekoDev.SimpleTuples.Quartet;
 import io.github.NicoNekoDev.SimpleTuples.Triplet;
 import org.bukkit.configuration.file.YamlConfiguration;
 import ro.nico.leaderboard.AstralLeaderboardsPlugin;
@@ -10,6 +11,7 @@ import ro.nico.leaderboard.storage.SQLDateType;
 import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 public abstract class Storage {
@@ -25,5 +27,9 @@ public abstract class Storage {
 
     public abstract void putPlayerDataForBoard(Board board, Map<Pair<String, UUID>, Pair<String, Map<String, String>>> sortedData) throws SQLException;
 
-    public abstract LinkedList<Triplet<Pair<String, UUID>, String, Map<String, String>>> getPlayerDataForBoard(Board board, SQLDateType type) throws SQLException;
+    public abstract LinkedList<Quartet<Pair<String, UUID>, String, Map<String, String>, Integer>> getPlayersDataForBoard(Board board, SQLDateType type) throws SQLException;
+
+    public abstract Map<Pair<String, UUID>, Triplet<String, Map<String, String>, Integer>> getOnlinePlayersDataForBoard(Set<Pair<String, UUID>> players, Board board, SQLDateType dateType) throws SQLException;
+
+    public abstract Triplet<String, Map<String, String>, Integer> getOnlinePlayerDataImmediately(Pair<String, UUID> player, Board board, SQLDateType dateType) throws SQLException;
 }
