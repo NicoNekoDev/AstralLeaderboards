@@ -56,4 +56,11 @@ public class StorageConfiguration extends Storage {
         return new HashMap<>();
     }
 
+    @Override
+    public Triplet<String, Map<String, String>, Integer> getOnlinePlayerDataImmediately(Pair<String, UUID> player, Board board, SQLDateType dateType) throws SQLException {
+        if (this.storage != null)
+            return this.storage.getOnlinePlayerDataImmediately(player, board, dateType);
+        return Triplet.of("", new HashMap<>(), -1);
+    }
+
 }

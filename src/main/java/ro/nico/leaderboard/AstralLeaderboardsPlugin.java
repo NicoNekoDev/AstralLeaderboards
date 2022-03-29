@@ -1,5 +1,8 @@
 package ro.nico.leaderboard;
 
+import com.mrivanplays.annotationconfig.core.resolver.ConfigResolver;
+import com.mrivanplays.annotationconfig.yaml.YamlConfig;
+import lombok.Getter;
 import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -11,7 +14,6 @@ import org.jetbrains.annotations.NotNull;
 import ro.nico.leaderboard.api.BoardsManager;
 import ro.nico.leaderboard.api.PlaceholderAPIHook;
 import ro.nico.leaderboard.storage.StorageConfiguration;
-import ro.nico.leaderboard.storage.types.Storage;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -22,10 +24,11 @@ import java.util.Objects;
 
 public class AstralLeaderboardsPlugin extends JavaPlugin {
     private final YamlConfiguration settings = new YamlConfiguration();
-    private final StorageConfiguration storage = new StorageConfiguration(this);
+    @Getter private final StorageConfiguration storage = new StorageConfiguration(this);
     private final File settingsFile = new File(this.getDataFolder(), "settings.yml");
-    private final BoardsManager manager = new BoardsManager(this);
-    private Permission permissions;
+    @Getter private final BoardsManager boardsManager = new BoardsManager(this);
+    @Getter private final ConfigResolver configResolver = YamlConfig.getConfigResolver();
+    @Getter private Permission vaultPermissions;
 
     @Override
     public void onEnable() {
@@ -41,7 +44,7 @@ public class AstralLeaderboardsPlugin extends JavaPlugin {
         Plugin vault = Bukkit.getPluginManager().getPlugin("Vault");
         if (vault != null && vault.isEnabled()) {
             this.getLogger().info("Hooking into Vault...");
-            this.permissions = Objects.requireNonNull(this.getServer().getServicesManager().getRegistration(Permission.class), "Failed to find Vault permissions").getProvider();
+            this.vaultPermissions = Objects.requireNonNull(this.getServer().getServicesManager().getRegistration(Permission.class), "Failed to find Vault permissions").getProvider();
         } else {
             this.getLogger().warning("Could not hook into Vault, disabling!");
             this.setEnabled(false);
@@ -50,24 +53,16 @@ public class AstralLeaderboardsPlugin extends JavaPlugin {
         this.reloadConfig();
         try {
             this.storage.load(this.settings);
-            this.manager.loadAllBoards();
+            this.boardsManager.loadAllBoards();
         } catch (SQLException e) {
             this.getLogger().severe("Could not load storage!");
         }
         Objects.requireNonNull(this.getCommand("astrallb"), "Failed to find main command!").setExecutor(new AstralLeaderboardsCommand(this));
     }
 
-    public Permission getVaultPermissions() {
-        return this.permissions;
-    }
-
     @Override
     public void onDisable() {
-        this.manager.unloadAllBoards();
-    }
-
-    public final BoardsManager getBoardsManager() {
-        return this.manager;
+        this.boardsManager.unloadAllBoards();
     }
 
     public void reloadPlugin() {
@@ -75,15 +70,11 @@ public class AstralLeaderboardsPlugin extends JavaPlugin {
         try {
             this.storage.unload();
             this.storage.load(this.settings);
-            this.manager.unloadAllBoards();
-            this.manager.loadAllBoards();
+            this.boardsManager.unloadAllBoards();
+            this.boardsManager.loadAllBoards();
         } catch (SQLException e) {
             this.getLogger().severe("Could not reload storage!");
         }
-    }
-
-    public Storage getStorage() {
-        return this.storage;
     }
 
     @Override

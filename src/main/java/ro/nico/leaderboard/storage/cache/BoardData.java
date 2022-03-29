@@ -2,6 +2,8 @@ package ro.nico.leaderboard.storage.cache;
 
 import io.github.NicoNekoDev.SimpleTuples.Pair;
 import io.github.NicoNekoDev.SimpleTuples.Triplet;
+import lombok.AccessLevel;
+import lombok.Getter;
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -21,37 +23,47 @@ import java.util.stream.Collectors;
 
 public class BoardData {
     private final Board board;
-    private final IdentityHashMap<SQLDateType, SyncAsyncSortedData> sortedData = new IdentityHashMap<>(7);
+    @Getter(AccessLevel.PROTECTED) private final IdentityHashMap<SQLDateType, SyncAsyncSortedData> sortedData;
+    @Getter(AccessLevel.PROTECTED) private final IdentityHashMap<SQLDateType, SyncAsyncOnlinePlayersData> onlinePlayersData;
+
     private CompletableFuture<Map<Pair<String, UUID>, Pair<String, Map<String, String>>>> asyncFutureSortedData;
-    private final IdentityHashMap<SQLDateType, SyncAsyncOnlinePlayersData> onlinePlayersData = new IdentityHashMap<>(7);
     private CompletableFuture<Set<Pair<String, UUID>>> asyncFutureOnlinePlayersData;
+
     private Map<Triplet<String, UUID, SQLDateType>, CompletableFuture<Triplet<String, Map<String, String>, Integer>>> immediateOnlinePlayersSyncFutureLists;
     private Map<Triplet<String, UUID, SQLDateType>, CompletableFuture<Pair<String, UUID>>> immediateOnlinePlayersAsyncFutureLists;
 
     public BoardData(@NotNull Board board) {
         this.board = board;
-        this.sortedData.put(SQLDateType.ALLTIME, new SyncAsyncSortedData());
-        if (this.board.isHourlyUpdateEnabled())
-            this.sortedData.put(SQLDateType.HOURLY, new SyncAsyncSortedData());
-        if (this.board.isDailyUpdateEnabled())
-            this.sortedData.put(SQLDateType.DAILY, new SyncAsyncSortedData());
-        if (this.board.isWeeklyUpdateEnabled())
-            this.sortedData.put(SQLDateType.WEEKLY, new SyncAsyncSortedData());
-        if (this.board.isMonthlyUpdateEnabled())
-            this.sortedData.put(SQLDateType.MONTHLY, new SyncAsyncSortedData());
-        if (this.board.isYearlyUpdateEnabled())
-            this.sortedData.put(SQLDateType.YEARLY, new SyncAsyncSortedData());
-        this.onlinePlayersData.put(SQLDateType.ALLTIME, new SyncAsyncOnlinePlayersData());
-        if (this.board.isHourlyUpdateEnabled())
-            this.onlinePlayersData.put(SQLDateType.HOURLY, new SyncAsyncOnlinePlayersData());
-        if (this.board.isDailyUpdateEnabled())
-            this.onlinePlayersData.put(SQLDateType.DAILY, new SyncAsyncOnlinePlayersData());
-        if (this.board.isWeeklyUpdateEnabled())
-            this.onlinePlayersData.put(SQLDateType.WEEKLY, new SyncAsyncOnlinePlayersData());
-        if (this.board.isMonthlyUpdateEnabled())
-            this.onlinePlayersData.put(SQLDateType.MONTHLY, new SyncAsyncOnlinePlayersData());
-        if (this.board.isYearlyUpdateEnabled())
-            this.onlinePlayersData.put(SQLDateType.YEARLY, new SyncAsyncOnlinePlayersData());
+        this.sortedData = new IdentityHashMap<>(8) {
+            {
+                put(SQLDateType.ALLTIME, new SyncAsyncSortedData());
+                if (board.getBoardSettings().isHourlyUpdated())
+                    put(SQLDateType.HOURLY, new SyncAsyncSortedData());
+                if (board.getBoardSettings().isDailyUpdated())
+                    put(SQLDateType.DAILY, new SyncAsyncSortedData());
+                if (board.getBoardSettings().isWeeklyUpdated())
+                    put(SQLDateType.WEEKLY, new SyncAsyncSortedData());
+                if (board.getBoardSettings().isMonthlyUpdated())
+                    put(SQLDateType.MONTHLY, new SyncAsyncSortedData());
+                if (board.getBoardSettings().isYearlyUpdated())
+                    put(SQLDateType.YEARLY, new SyncAsyncSortedData());
+            }
+        };
+        this.onlinePlayersData = new IdentityHashMap<>(8) {
+            {
+                put(SQLDateType.ALLTIME, new SyncAsyncOnlinePlayersData());
+                if (board.getBoardSettings().isHourlyUpdated())
+                    put(SQLDateType.HOURLY, new SyncAsyncOnlinePlayersData());
+                if (board.getBoardSettings().isDailyUpdated())
+                    put(SQLDateType.DAILY, new SyncAsyncOnlinePlayersData());
+                if (board.getBoardSettings().isWeeklyUpdated())
+                    put(SQLDateType.WEEKLY, new SyncAsyncOnlinePlayersData());
+                if (board.getBoardSettings().isMonthlyUpdated())
+                    put(SQLDateType.MONTHLY, new SyncAsyncOnlinePlayersData());
+                if (board.getBoardSettings().isYearlyUpdated())
+                    put(SQLDateType.YEARLY, new SyncAsyncOnlinePlayersData());
+            }
+        };
     }
 
     @Nullable
@@ -162,18 +174,24 @@ public class BoardData {
             this.asyncFutureSortedData = new CompletableFuture<>();
             this.sortedData.forEach((type, data) -> data.update());
             Map<Pair<String, UUID>, Pair<String, Map<String, String>>> playerData = new HashMap<>();
+            // players_loop label
+            players_loop:
             for (Player player : Bukkit.getOnlinePlayers()) {
-                if (board.hasPlayerExempt(player.getName()) || board.hasPlayerExempt(player.getUniqueId()))
+                UUID uuid = player.getUniqueId();
+                String name = player.getName();
+                if (board.hasPlayerExempt(name) || board.hasPlayerExempt(uuid))
                     continue;
                 Map<String, String> playerTrackers = new HashMap<>();
-                for (String tracker : board.getTrackers().getKeys(false)) {
-                    String trackerValue = PlaceholderAPI.setPlaceholders(player, board.getTrackers().getString(tracker, "%player_name%"));
-                    playerTrackers.put(tracker, trackerValue);
+                for (Map.Entry<String, Object> entry : board.getTrackers().entrySet()) {
+                    String entryValue = String.valueOf(entry.getValue());
+                    String value = PlaceholderAPI.setPlaceholders(player, entryValue);
+                    if (entryValue.equals(value)) continue players_loop; // << continue to label
+                    playerTrackers.put(entry.getKey(), value);
                 }
-                playerData.put(new Pair<>(player.getName(), player.getUniqueId()), new Pair<>(
-                        PlaceholderAPI.setPlaceholders(player, this.board.getSorter()),
-                        playerTrackers
-                ));
+                String boardSorter = this.board.getBoardSettings().getSorter();
+                String sorter = PlaceholderAPI.setPlaceholders(player, boardSorter);
+                if (boardSorter.equals(sorter)) continue; // << continue to label
+                playerData.put(Pair.of(name, uuid), Pair.of(sorter, playerTrackers));
             }
             this.asyncFutureSortedData.complete(playerData);
         }

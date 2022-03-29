@@ -59,11 +59,11 @@ public class PlaceholderAPIHook extends PlaceholderExpansion {
             try {
                 PlayerData data = board.getBoardData().getData(position, time);
                 if (data == null)
-                    return board.getDefaultPlaceholder();
-                String trackerData = data.getTracker(tracker);
-                return trackerData == null ? board.getDefaultPlaceholder() : trackerData;
+                    return board.getBoardSettings().getDefaultTrackerPlaceholder();
+                String trackerData = data.getTrackers().get(tracker);
+                return trackerData == null ? board.getBoardSettings().getDefaultTrackerPlaceholder() : trackerData;
             } catch (IndexOutOfBoundsException ex) {
-                return board.getDefaultPlaceholder();
+                return board.getBoardSettings().getDefaultTrackerPlaceholder();
             }
         }
         return defaultValue;

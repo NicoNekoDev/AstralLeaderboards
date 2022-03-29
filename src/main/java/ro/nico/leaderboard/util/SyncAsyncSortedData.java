@@ -2,6 +2,7 @@ package ro.nico.leaderboard.util;
 
 import io.github.NicoNekoDev.SimpleTuples.Pair;
 import io.github.NicoNekoDev.SimpleTuples.Quartet;
+import lombok.Getter;
 import ro.nico.leaderboard.api.Board;
 import ro.nico.leaderboard.storage.SQLDateType;
 import ro.nico.leaderboard.storage.cache.PlayerData;
@@ -14,8 +15,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 public class SyncAsyncSortedData {
-    private final LinkedMapList<Pair<String, UUID>, PlayerData> sortedData = new LinkedMapList<>();
-    private CompletableFuture<LinkedList<Quartet<Pair<String, UUID>, String, Map<String, String>, Integer>>> syncFuture;
+    @Getter private final LinkedMapList<Pair<String, UUID>, PlayerData> sortedData = new LinkedMapList<>();
+    @Getter private CompletableFuture<LinkedList<Quartet<Pair<String, UUID>, String, Map<String, String>, Integer>>> syncFuture;
 
     public void syncHeartbeat() throws ExecutionException, InterruptedException {
         if (this.syncFuture != null && this.syncFuture.isDone()) {
@@ -35,13 +36,5 @@ public class SyncAsyncSortedData {
 
     public void update() {
         this.syncFuture = new CompletableFuture<>();
-    }
-
-    public LinkedMapList<Pair<String, UUID>, PlayerData> getSortedData() {
-        return this.sortedData;
-    }
-
-    public CompletableFuture<LinkedList<Quartet<Pair<String, UUID>, String, Map<String, String>, Integer>>> getSyncFuture() {
-        return this.syncFuture;
     }
 }

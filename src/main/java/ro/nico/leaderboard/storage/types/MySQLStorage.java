@@ -2,6 +2,7 @@ package ro.nico.leaderboard.storage.types;
 
 import io.github.NicoNekoDev.SimpleTuples.Pair;
 import io.github.NicoNekoDev.SimpleTuples.Quartet;
+import io.github.NicoNekoDev.SimpleTuples.Triplet;
 import org.bukkit.configuration.file.YamlConfiguration;
 import ro.nico.leaderboard.AstralLeaderboardsPlugin;
 import ro.nico.leaderboard.api.Board;
@@ -11,6 +12,7 @@ import ro.nico.leaderboard.util.GsonUtil;
 import java.sql.*;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 public class MySQLStorage extends Storage {
@@ -85,7 +87,7 @@ public class MySQLStorage extends Storage {
     @Override
     public LinkedList<Quartet<Pair<String, UUID>, String, Map<String, String>, Integer>> getPlayersDataForBoard(Board board, SQLDateType dateType) throws SQLException {
         LinkedList<Quartet<Pair<String, UUID>, String, Map<String, String>, Integer>> result = new LinkedList<>();
-        String query = board.isReversed() ?
+        String query = board.getBoardSettings().isReversed() ?
                 switch (dateType) {
                     case ALLTIME -> "SELECT player_name, player_uuid, sorter, trackers FROM ? WHERE `board_id` = ? ORDER BY `sorter` DESC LIMIT ?;";
                     case HOURLY -> "SELECT player_name, player_uuid, sorter, trackers FROM ? WHERE `board_id` = ? AND `date` BETWEEN NOW() AND DATE_SUB(NOW(), INTERVAL 1 HOUR) ORDER BY sorter DESC LIMIT ?;";
@@ -105,7 +107,7 @@ public class MySQLStorage extends Storage {
         try (PreparedStatement statement = this.connection.prepareStatement(query)) {
             statement.setString(1, this.table_prefix + "leaderboard");
             statement.setString(2, board.getId());
-            statement.setInt(3, board.getRowSize());
+            statement.setInt(3, board.getBoardSettings().getRowSize());
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
                     Pair<String, UUID> player = new Pair<>(resultSet.getString("player_name"), UUID.fromString(resultSet.getString("player_uuid")));
@@ -116,5 +118,15 @@ public class MySQLStorage extends Storage {
             }
         }
         return result;
+    }
+
+    @Override
+    public Map<Pair<String, UUID>, Triplet<String, Map<String, String>, Integer>> getOnlinePlayersDataForBoard(Set<Pair<String, UUID>> players, Board board, SQLDateType dateType) throws SQLException {
+        return null;
+    }
+
+    @Override
+    public Triplet<String, Map<String, String>, Integer> getOnlinePlayerDataImmediately(Pair<String, UUID> player, Board board, SQLDateType dateType) throws SQLException {
+        return null;
     }
 }

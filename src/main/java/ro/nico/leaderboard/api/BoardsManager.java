@@ -2,9 +2,9 @@ package ro.nico.leaderboard.api;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
 import ro.nico.leaderboard.AstralLeaderboardsPlugin;
+import ro.nico.leaderboard.util.BoardSettings;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,11 +13,13 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 public class BoardsManager {
     private final AstralLeaderboardsPlugin plugin;
     private final Map<String, Board> boards = new HashMap<>();
     private final File boardsDirectory;
+    private static final Pattern BOARD_ID_PATTERN = Pattern.compile("[a-zA-Z0-9-]+");
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public BoardsManager(@NotNull AstralLeaderboardsPlugin plugin) {
@@ -31,21 +33,18 @@ public class BoardsManager {
             @Override
             public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) {
                 if (path.toString().endsWith(".yml")) {
-                    YamlConfiguration boardConfig = YamlConfiguration.loadConfiguration(path.toFile());
-                    if (!boardConfig.isString("id")) {
-                        plugin.getLogger().warning("Invalid board id in board config file: " + path);
+                    BoardSettings settings = new BoardSettings();
+                    BoardsManager.this.plugin.getConfigResolver().load(settings, path.toFile());
+                    String id = settings.getId();
+                    if (!BOARD_ID_PATTERN.matcher(id).matches()) {
+                        plugin.getLogger().warning("Invalid board id: " + id);
                         return FileVisitResult.CONTINUE;
                     }
-                    if (!boardConfig.isString("sorter")) {
-                        plugin.getLogger().warning("Invalid board sorter in board config file: " + path);
-                        return FileVisitResult.CONTINUE;
-                    }
-                    String id = boardConfig.getString("id", "default");
                     if (boards.containsKey(id)) {
                         plugin.getLogger().warning("Duplicate board id: " + id);
                         return FileVisitResult.CONTINUE;
                     }
-                    Board board = new Board(plugin, id, path.toFile(), boardConfig);
+                    Board board = new Board(plugin, id, path.toFile(), settings);
                     BoardsManager.this.boards.put(id, board);
                 }
                 return FileVisitResult.CONTINUE;
@@ -65,22 +64,17 @@ public class BoardsManager {
         this.boards.clear();
     }
 
-    public Board createBoard(@NotNull String id, @NotNull String sorter) {
+    public Board createBoard(@NotNull String id, @NotNull String sorter) throws IllegalArgumentException {
         if (this.hasBoard(id))
             throw new IllegalArgumentException("Board with id " + id + " already exists");
-        YamlConfiguration boardConfig = new YamlConfiguration();
-        boardConfig.set("id", id);
-        boardConfig.set("sorter", sorter);
+        if (!BOARD_ID_PATTERN.matcher(id).matches())
+            throw new IllegalArgumentException("Invalid board id pattern: " + id);
+        BoardSettings boardSettings = new BoardSettings(id);
         File boardFile = new File(this.boardsDirectory, id + ".yml");
-        try {
-            boardConfig.save(boardFile);
-            Board board = new Board(this.plugin, id, boardFile, boardConfig);
-            this.boards.put(id, board);
-            return board;
-        } catch (IOException e) {
-            this.plugin.getLogger().warning("Failed to create board config file: " + e.getMessage());
-        }
-        return null;
+        this.plugin.getConfigResolver().load(boardSettings, boardFile);
+        Board board = new Board(this.plugin, id, boardFile, boardSettings);
+        this.boards.put(id, board);
+        return board;
     }
 
     public Map<String, Board> getBoards() {

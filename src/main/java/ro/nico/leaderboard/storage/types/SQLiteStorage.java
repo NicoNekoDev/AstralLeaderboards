@@ -69,33 +69,33 @@ public class SQLiteStorage extends Storage {
     @Override
     public LinkedList<Quartet<Pair<String, UUID>, String, Map<String, String>, Integer>> getPlayersDataForBoard(Board board, SQLDateType dateType) throws SQLException {
         LinkedList<Quartet<Pair<String, UUID>, String, Map<String, String>, Integer>> result = new LinkedList<>();
-        String query = board.isReversed() ?
+        String query = board.getBoardSettings().isReversed() ?
                 switch (dateType) {
-                    case ALLTIME -> "SELECT player_name, player_uuid, sorter, trackers, RANK() OVER (ORDER BY sorter DESC) AS rank FROM `leaderboard` WHERE board_id = ? ORDER BY sorter DESC LIMIT ?";
-                    case HOURLY -> "SELECT player_name, player_uuid, sorter, trackers, RANK() OVER (ORDER BY sorter DESC) AS rank FROM `leaderboard` WHERE board_id = ? AND date BETWEEN DATE('now', '-1 hour') AND DATE('now') ORDER BY sorter DESC LIMIT ?";
-                    case DAILY -> "SELECT player_name, player_uuid, sorter, trackers, RANK() OVER (ORDER BY sorter DESC) AS rank FROM `leaderboard` WHERE `board_id` = ? AND `date` BETWEEN DATE('now','-1 day') AND DATE('now') ORDER BY sorter DESC LIMIT ?;";
-                    case WEEKLY -> "SELECT player_name, player_uuid, sorter, trackers, RANK() OVER (ORDER BY sorter DESC) AS rank FROM `leaderboard` WHERE `board_id` = ? AND `date` BETWEEN DATE('now','-1 week') AND DATE('now') ORDER BY sorter DESC LIMIT ?;";
-                    case MONTHLY -> "SELECT player_name, player_uuid, sorter, trackers, RANK() OVER (ORDER BY sorter DESC) AS rank FROM `leaderboard` WHERE `board_id` = ? AND `date` BETWEEN DATE('now','-1 month') AND DATE('now') ORDER BY sorter DESC LIMIT ?;";
-                    case YEARLY -> "SELECT player_name, player_uuid, sorter, trackers, RANK() OVER (ORDER BY sorter DESC) AS rank FROM `leaderboard` WHERE `board_id` = ? AND `date` BETWEEN DATE('now','-1 year') AND DATE('now') ORDER BY sorter DESC LIMIT ?;";
+                    case ALLTIME -> "SELECT player_name, player_uuid, sorter, trackers FROM `leaderboard` WHERE board_id = ? ORDER BY sorter DESC LIMIT ?";
+                    case HOURLY -> "SELECT player_name, player_uuid, sorter, trackers FROM `leaderboard` WHERE board_id = ? AND date BETWEEN DATE('now', '-1 hour') AND DATE('now') ORDER BY sorter DESC LIMIT ?";
+                    case DAILY -> "SELECT player_name, player_uuid, sorter, trackers FROM `leaderboard` WHERE `board_id` = ? AND `date` BETWEEN DATE('now','-1 day') AND DATE('now') ORDER BY sorter DESC LIMIT ?;";
+                    case WEEKLY -> "SELECT player_name, player_uuid, sorter, trackers FROM `leaderboard` WHERE `board_id` = ? AND `date` BETWEEN DATE('now','-1 week') AND DATE('now') ORDER BY sorter DESC LIMIT ?;";
+                    case MONTHLY -> "SELECT player_name, player_uuid, sorter, trackers FROM `leaderboard` WHERE `board_id` = ? AND `date` BETWEEN DATE('now','-1 month') AND DATE('now') ORDER BY sorter DESC LIMIT ?;";
+                    case YEARLY -> "SELECT player_name, player_uuid, sorter, trackers FROM `leaderboard` WHERE `board_id` = ? AND `date` BETWEEN DATE('now','-1 year') AND DATE('now') ORDER BY sorter DESC LIMIT ?;";
                 } :
                 switch (dateType) {
-                    case ALLTIME -> "SELECT player_name, player_uuid, sorter, trackers, RANK() OVER (ORDER BY sorter ASC) AS rank FROM `leaderboard` WHERE `board_id` = ? ORDER BY `sorter` DESC LIMIT ?;";
-                    case HOURLY -> "SELECT player_name, player_uuid, sorter, trackers, RANK() OVER (ORDER BY sorter ASC) AS rank FROM `leaderboard` WHERE `board_id` = ? AND `date` BETWEEN DATE('now','-1 hour') AND DATE('now') ORDER BY sorter ASC LIMIT ?;";
-                    case DAILY -> "SELECT player_name, player_uuid, sorter, trackers, RANK() OVER (ORDER BY sorter ASC) AS rank FROM `leaderboard` WHERE `board_id` = ? AND `date` BETWEEN DATE('now','-1 day') AND DATE('now') ORDER BY sorter ASC LIMIT ?;";
-                    case WEEKLY -> "SELECT player_name, player_uuid, sorter, trackers, RANK() OVER (ORDER BY sorter ASC) AS rank FROM `leaderboard` WHERE `board_id` = ? AND `date` BETWEEN DATE('now','-1 week') AND DATE('now') ORDER BY sorter ASC LIMIT ?;";
-                    case MONTHLY -> "SELECT player_name, player_uuid, sorter, trackers, RANK() OVER (ORDER BY sorter ASC) AS rank FROM `leaderboard` WHERE `board_id` = ? AND `date` BETWEEN DATE('now','-1 month') AND DATE('now') ORDER BY sorter ASC LIMIT ?;";
-                    case YEARLY -> "SELECT player_name, player_uuid, sorter, trackers, RANK() OVER (ORDER BY sorter ASC) AS rank FROM `leaderboard` WHERE `board_id` = ? AND `date` BETWEEN DATE('now','-1 year') AND DATE('now') ORDER BY sorter ASC LIMIT ?;";
+                    case ALLTIME -> "SELECT player_name, player_uuid, sorter, trackers FROM `leaderboard` WHERE `board_id` = ? ORDER BY `sorter` DESC LIMIT ?;";
+                    case HOURLY -> "SELECT player_name, player_uuid, sorter, trackers FROM `leaderboard` WHERE `board_id` = ? AND `date` BETWEEN DATE('now','-1 hour') AND DATE('now') ORDER BY sorter ASC LIMIT ?;";
+                    case DAILY -> "SELECT player_name, player_uuid, sorter, trackers FROM `leaderboard` WHERE `board_id` = ? AND `date` BETWEEN DATE('now','-1 day') AND DATE('now') ORDER BY sorter ASC LIMIT ?;";
+                    case WEEKLY -> "SELECT player_name, player_uuid, sorter, trackers FROM `leaderboard` WHERE `board_id` = ? AND `date` BETWEEN DATE('now','-1 week') AND DATE('now') ORDER BY sorter ASC LIMIT ?;";
+                    case MONTHLY -> "SELECT player_name, player_uuid, sorter, trackers FROM `leaderboard` WHERE `board_id` = ? AND `date` BETWEEN DATE('now','-1 month') AND DATE('now') ORDER BY sorter ASC LIMIT ?;";
+                    case YEARLY -> "SELECT player_name, player_uuid, sorter, trackers FROM `leaderboard` WHERE `board_id` = ? AND `date` BETWEEN DATE('now','-1 year') AND DATE('now') ORDER BY sorter ASC LIMIT ?;";
                 };
         try (PreparedStatement statement = this.connection.prepareStatement(query)) {
             statement.setString(1, board.getId());
-            statement.setInt(2, board.getRowSize());
+            statement.setInt(2, board.getBoardSettings().getRowSize());
             try (ResultSet resultSet = statement.executeQuery()) {
+                int rank = 0;
                 while (resultSet.next()) {
                     Pair<String, UUID> player = new Pair<>(resultSet.getString("player_name"), UUID.fromString(resultSet.getString("player_uuid")));
                     String sorter = resultSet.getString("sorter");
                     Map<String, String> trackers = GsonUtil.convertJsonToMap(GsonUtil.fromBase64(resultSet.getString("trackers"))); // it converts the base64 string to a map using gson
-                    int rank = resultSet.getInt("rank");
-                    result.add(Quartet.of(player, sorter, trackers, rank));
+                    result.add(Quartet.of(player, sorter, trackers, ++rank));
                 }
             }
         }
@@ -105,7 +105,7 @@ public class SQLiteStorage extends Storage {
     @Override
     public Map<Pair<String, UUID>, Triplet<String, Map<String, String>, Integer>> getOnlinePlayersDataForBoard(Set<Pair<String, UUID>> players, Board board, SQLDateType dateType) throws SQLException {
         Map<Pair<String, UUID>, Triplet<String, Map<String, String>, Integer>> result = new HashMap<>();
-        String query = board.isReversed() ?
+        String query = board.getBoardSettings().isReversed() ?
                 switch (dateType) {
                     case ALLTIME -> "SELECT sorter, trackers, RANK() OVER (ORDER BY sorter DESC) AS rank FROM `leaderboard` WHERE board_id = ? AND player_name = ? AND player_uuid = ?;";
                     case HOURLY -> "SELECT sorter, trackers, RANK() OVER (ORDER BY sorter DESC) AS rank FROM `leaderboard` WHERE board_id = ? AND player_name = ? AND player_uuid = ? AND `date` BETWEEN DATE('now','-1 hour') AND DATE('now');";
@@ -142,7 +142,7 @@ public class SQLiteStorage extends Storage {
 
     @Override
     public Triplet<String, Map<String, String>, Integer> getOnlinePlayerDataImmediately(Pair<String, UUID> player, Board board, SQLDateType dateType) throws SQLException {
-        String query = board.isReversed() ?
+        String query = board.getBoardSettings().isReversed() ?
                 switch (dateType) {
                     case ALLTIME -> "SELECT sorter, trackers, RANK() OVER (ORDER BY sorter DESC) AS rank FROM `leaderboard` WHERE board_id = ? AND player_name = ? AND player_uuid = ?;";
                     case HOURLY -> "SELECT sorter, trackers, RANK() OVER (ORDER BY sorter DESC) AS rank FROM `leaderboard` WHERE board_id = ? AND player_name = ? AND player_uuid = ? AND `date` BETWEEN DATE('now','-1 hour') AND DATE('now');";
