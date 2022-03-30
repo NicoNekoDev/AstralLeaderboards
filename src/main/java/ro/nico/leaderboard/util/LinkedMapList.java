@@ -1,16 +1,16 @@
 package ro.nico.leaderboard.util;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
 public class LinkedMapList<K, V> {
     private final LinkedList<K> linkedList;
-    private final Map<K, V> map;
+    private final LinkedHashMap<K, V> map;
 
     public LinkedMapList() {
         this.linkedList = new LinkedList<>();
-        this.map = new HashMap<>();
+        this.map = new LinkedHashMap<>();
     }
 
     public void put(K key, V value) {
@@ -27,7 +27,7 @@ public class LinkedMapList<K, V> {
         map.putAll(other.map);
     }
 
-    public Map<K, V> asMap() {
+    protected Map<K, V> asMap() {
         return map;
     }
 

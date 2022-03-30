@@ -3,12 +3,12 @@ package ro.nico.leaderboard.storage;
 import io.github.NicoNekoDev.SimpleTuples.Pair;
 import io.github.NicoNekoDev.SimpleTuples.Quartet;
 import io.github.NicoNekoDev.SimpleTuples.Triplet;
-import org.bukkit.configuration.file.YamlConfiguration;
 import ro.nico.leaderboard.AstralLeaderboardsPlugin;
 import ro.nico.leaderboard.api.Board;
 import ro.nico.leaderboard.storage.types.MySQLStorage;
 import ro.nico.leaderboard.storage.types.SQLiteStorage;
 import ro.nico.leaderboard.storage.types.Storage;
+import ro.nico.leaderboard.settings.PluginSettings;
 
 import java.sql.SQLException;
 import java.util.*;
@@ -20,10 +20,10 @@ public class StorageConfiguration extends Storage {
         super(plugin);
     }
 
-    public void load(YamlConfiguration config) throws SQLException {
+    public void load(PluginSettings config) throws SQLException {
         if (storage != null)
             storage.unload();
-        if (config.getBoolean("use-mysql", false))
+        if (config.isUsingMySQL())
             storage = new MySQLStorage(plugin);
         else
             storage = new SQLiteStorage(plugin);

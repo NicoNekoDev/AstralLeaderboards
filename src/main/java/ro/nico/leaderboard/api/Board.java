@@ -6,7 +6,7 @@ import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 import ro.nico.leaderboard.AstralLeaderboardsPlugin;
 import ro.nico.leaderboard.storage.cache.BoardData;
-import ro.nico.leaderboard.util.BoardSettings;
+import ro.nico.leaderboard.settings.BoardSettings;
 
 import java.io.File;
 import java.util.Map;
@@ -86,5 +86,9 @@ public class Board {
         if (this.asyncHeartbeatTask != null) this.asyncHeartbeatTask.cancel();
         if (this.syncHeartbeatTask != null) this.syncHeartbeatTask.cancel();
         if (this.updateTask != null) this.updateTask.cancel();
+    }
+
+    protected void deleteSettings() {
+        this.boardFile.delete();
     }
 }

@@ -3,11 +3,11 @@ package ro.nico.leaderboard.storage.types;
 import io.github.NicoNekoDev.SimpleTuples.Pair;
 import io.github.NicoNekoDev.SimpleTuples.Quartet;
 import io.github.NicoNekoDev.SimpleTuples.Triplet;
-import org.bukkit.configuration.file.YamlConfiguration;
 import ro.nico.leaderboard.AstralLeaderboardsPlugin;
 import ro.nico.leaderboard.api.Board;
 import ro.nico.leaderboard.storage.SQLDateType;
 import ro.nico.leaderboard.util.GsonUtil;
+import ro.nico.leaderboard.settings.PluginSettings;
 
 import java.sql.*;
 import java.util.LinkedList;
@@ -23,20 +23,15 @@ public class MySQLStorage extends Storage {
         super(plugin);
     }
 
-    public void load(YamlConfiguration settings) throws SQLException {
-        String user = settings.getString("storage.mysql.user", "user");
-        String pass = settings.getString("storage.mysql.password", "password");
-        String ip = settings.getString("storage.mysql.ip", "localhost");
-        String port = "3306";
-        if (settings.isString("storage.mysql.port")) {
-            port = settings.getString("storage.mysql.port", "3306");
-        } else if (settings.isInt("storage.mysql.port")) {
-            port = String.valueOf(settings.getInt("storage.mysql.port", 3306));
-        }
-        String database = settings.getString("storage.mysql.name", "database");
-        boolean sslEnabled = settings.getBoolean("database.mysql.enable_ssl", false);
-        this.table_prefix = settings.getString("storage.mysql.table_prefix", "astrallb_");
-        this.connection = DriverManager.getConnection("jdbc:mysql://" + ip + ":" + port + "/" + database + "?user=" + user + "&password=" + pass + "&useSSL=" + sslEnabled + "&autoReconnect=true");
+    public void load(PluginSettings settings) throws SQLException {
+        String user = settings.getMySQLUser();
+        String pass = settings.getMySQLPassword();
+        String host = settings.getMySQLHost();
+        String port = settings.getMySQLPort();
+        String database = settings.getMySQLDatabase();
+        boolean sslEnabled = settings.isMySQLSSLEnabled();
+        this.table_prefix = settings.getMySQLTablePrefix();
+        this.connection = DriverManager.getConnection("jdbc:mysql://" + host + ":" + port + "/" + database + "?user=" + user + "&password=" + pass + "&useSSL=" + sslEnabled + "&autoReconnect=true");
 
         try (PreparedStatement statement = this.connection.prepareStatement("""
                 CREATE TABLE IF NOT EXISTS ? (

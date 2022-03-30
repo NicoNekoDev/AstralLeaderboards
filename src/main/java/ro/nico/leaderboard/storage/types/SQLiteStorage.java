@@ -3,11 +3,11 @@ package ro.nico.leaderboard.storage.types;
 import io.github.NicoNekoDev.SimpleTuples.Pair;
 import io.github.NicoNekoDev.SimpleTuples.Quartet;
 import io.github.NicoNekoDev.SimpleTuples.Triplet;
-import org.bukkit.configuration.file.YamlConfiguration;
 import ro.nico.leaderboard.AstralLeaderboardsPlugin;
 import ro.nico.leaderboard.api.Board;
 import ro.nico.leaderboard.storage.SQLDateType;
 import ro.nico.leaderboard.util.GsonUtil;
+import ro.nico.leaderboard.settings.PluginSettings;
 
 import java.io.File;
 import java.sql.*;
@@ -20,8 +20,8 @@ public class SQLiteStorage extends Storage {
         super(plugin);
     }
 
-    public void load(YamlConfiguration settings) throws SQLException {
-        this.connection = DriverManager.getConnection("jdbc:sqlite:" + super.plugin.getDataFolder() + File.separator + settings.getString("storage.sqlite.name", "leaderboard.db"));
+    public void load(PluginSettings settings) throws SQLException {
+        this.connection = DriverManager.getConnection("jdbc:sqlite:" + super.plugin.getDataFolder() + File.separator + settings.getSQLiteFileName());
         try (PreparedStatement statement = this.connection.prepareStatement("""
                 CREATE TABLE IF NOT EXISTS `leaderboard` (
                 board_id VARCHAR(255) NOT NULL,

@@ -1,5 +1,6 @@
 package ro.nico.leaderboard.storage.cache;
 
+import com.google.common.collect.ImmutableMap;
 import io.github.NicoNekoDev.SimpleTuples.Pair;
 import io.github.NicoNekoDev.SimpleTuples.Triplet;
 import lombok.AccessLevel;
@@ -73,6 +74,10 @@ public class BoardData {
 
     public PlayerData getData(Player player, @NotNull SQLDateType type) {
         return this.onlinePlayersData.get(type).getSortedData().get(Pair.of(player.getName(), player.getUniqueId()));
+    }
+
+    public ImmutableMap<Pair<String, UUID>, PlayerData> dumpAllData(@NotNull SQLDateType type) {
+        return this.sortedData.get(type).dumpAllData();
     }
 
     public void updatePlayerDataImmediately(Player player) {

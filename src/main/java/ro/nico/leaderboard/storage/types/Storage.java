@@ -3,10 +3,10 @@ package ro.nico.leaderboard.storage.types;
 import io.github.NicoNekoDev.SimpleTuples.Pair;
 import io.github.NicoNekoDev.SimpleTuples.Quartet;
 import io.github.NicoNekoDev.SimpleTuples.Triplet;
-import org.bukkit.configuration.file.YamlConfiguration;
 import ro.nico.leaderboard.AstralLeaderboardsPlugin;
 import ro.nico.leaderboard.api.Board;
 import ro.nico.leaderboard.storage.SQLDateType;
+import ro.nico.leaderboard.settings.PluginSettings;
 
 import java.sql.SQLException;
 import java.util.LinkedList;
@@ -21,7 +21,7 @@ public abstract class Storage {
         this.plugin = plugin;
     }
 
-    public abstract void load(YamlConfiguration settings) throws SQLException;
+    public abstract void load(PluginSettings settings) throws SQLException;
 
     public abstract void unload() throws SQLException;
 

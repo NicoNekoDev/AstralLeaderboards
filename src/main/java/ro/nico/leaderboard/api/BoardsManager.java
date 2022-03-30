@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.jetbrains.annotations.NotNull;
 import ro.nico.leaderboard.AstralLeaderboardsPlugin;
-import ro.nico.leaderboard.util.BoardSettings;
+import ro.nico.leaderboard.settings.BoardSettings;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,7 +19,7 @@ public class BoardsManager {
     private final AstralLeaderboardsPlugin plugin;
     private final Map<String, Board> boards = new HashMap<>();
     private final File boardsDirectory;
-    private static final Pattern BOARD_ID_PATTERN = Pattern.compile("[a-zA-Z0-9-]+");
+    public static final Pattern BOARD_ID_PATTERN = Pattern.compile("[a-zA-Z0-9-]+");
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public BoardsManager(@NotNull AstralLeaderboardsPlugin plugin) {
@@ -74,7 +74,16 @@ public class BoardsManager {
         this.plugin.getConfigResolver().load(boardSettings, boardFile);
         Board board = new Board(this.plugin, id, boardFile, boardSettings);
         this.boards.put(id, board);
+        board.dumpSettings();
         return board;
+    }
+
+    public void deleteBoard(@NotNull String id) {
+        Board board = this.boards.remove(id);
+        if (board != null) {
+            board.disable();
+            board.deleteSettings();
+        }
     }
 
     public Map<String, Board> getBoards() {

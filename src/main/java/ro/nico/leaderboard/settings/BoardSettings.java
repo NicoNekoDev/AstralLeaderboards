@@ -1,4 +1,4 @@
-package ro.nico.leaderboard.util;
+package ro.nico.leaderboard.settings;
 
 import com.mrivanplays.annotationconfig.core.annotations.Key;
 import com.mrivanplays.annotationconfig.core.annotations.comment.Comment;

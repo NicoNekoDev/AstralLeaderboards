@@ -33,7 +33,7 @@ public class PlaceholderAPIHook extends PlaceholderExpansion {
     // %astrallb_<board>_<position>_<tracker>_<date>%
     @Override
     public @Nullable String onRequest(OfflinePlayer player, @NotNull String params) {
-        String defaultValue = plugin.getConfig().getString("default-placeholder", "???");
+        String defaultValue = plugin.getSettings().getDefaultPlaceholder();
         String[] args = params.split("_");
         if (args.length == 4) {
             String boardData = args[0];
