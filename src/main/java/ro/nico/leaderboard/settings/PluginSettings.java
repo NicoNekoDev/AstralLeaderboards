@@ -70,6 +70,7 @@ public class PluginSettings {
                 add("&e/astrallb create <board> <sorter> &7- &aCreates a new board.");
                 add("&e/astrallb delete <board> &7- &aDeletes the board.");
                 add("&e/astrallb data <board> <type> &7- &aShows the data of the board.");
+                add("&e/astrallb trackeradd <board> <tracker> <placeholder> &7- &aAdds a tracker to the board.");
                 add("&7&m-----------------------------------------------------");
             }
         };
@@ -93,6 +94,16 @@ public class PluginSettings {
         @Getter
         @SerializedName("board-data-usage")
         private String boardDataUsageMessage = "&cUsage: &e/astrallb data <board> <date>";
+
+        @NonNull
+        @Getter
+        @SerializedName("tracker-add-usage")
+        private String trackerAddUsageMessage = "&cUsage: &e/astrallb addtracker <board> <tracker> <placeholder>";
+
+        @NonNull
+        @Getter
+        @SerializedName("tracker-remove-usage")
+        private String trackerRemoveUsageMessage = "&cUsage: &e/astrallb removetracker <board> <tracker>";
 
         @NonNull
         @Getter
@@ -153,5 +164,25 @@ public class PluginSettings {
         @Getter
         @SerializedName("data-header-entry")
         private String boardDataEntryMessage = "&e%rank%) &a%name% &7- &a%sorter% &7(&b%trackers%&7)";
+
+        @NonNull
+        @Getter
+        @SerializedName("tracker-already-exists")
+        private String trackerAlreadyExistsMessage = "&cThe tracker &e%tracker% &calready exists!";
+
+        @NonNull
+        @Getter
+        @SerializedName("tracker-not-found")
+        private String trackerNotFoundMessage = "&cThe tracker &e%tracker% &cwas not found!";
+
+        @NonNull
+        @Getter
+        @SerializedName("tracker-added")
+        private String trackerAddedMessage = "&aSuccessfully added the tracker &e%tracker%&a!";
+
+        @NonNull
+        @Getter
+        @SerializedName("tracker-removed")
+        private String trackerRemovedMessage = "&aSuccessfully removed the tracker &e%tracker%&a!";
     }
 }

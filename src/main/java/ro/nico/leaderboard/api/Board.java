@@ -7,8 +7,10 @@ import org.jetbrains.annotations.NotNull;
 import ro.nico.leaderboard.AstralLeaderboardsPlugin;
 import ro.nico.leaderboard.storage.cache.BoardData;
 import ro.nico.leaderboard.settings.BoardSettings;
+import ro.nico.leaderboard.util.GsonUtil;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
 
@@ -17,7 +19,7 @@ public class Board {
     @Getter private final AstralLeaderboardsPlugin plugin;
     @Getter private final BoardData boardData;
     @Getter private final String id;
-    @Getter private final BoardSettings boardSettings;
+    @Getter private BoardSettings boardSettings;
     private BukkitTask updateTask;
     private BukkitTask asyncHeartbeatTask;
     private BukkitTask syncHeartbeatTask;
@@ -69,11 +71,19 @@ public class Board {
     }
 
     protected void loadSettings() {
-        //this.plugin.getConfigResolver().load(this.boardSettings, this.boardFile);
+        try {
+            this.boardSettings = GsonUtil.load(BoardSettings.class, this.boardFile);
+        } catch (IOException e) {
+            this.plugin.getLogger().severe("Failed to load board settings for board " + this.id + "!");
+        }
     }
 
     protected void saveSettings() {
-        //this.plugin.getConfigResolver().dump(this.boardSettings, this.boardFile);
+        try {
+            GsonUtil.save(this.boardSettings, this.boardFile);
+        } catch (IOException e) {
+            this.plugin.getLogger().severe("Failed to save board settings for board " + this.id + "!");
+        }
     }
 
     protected void enable() {

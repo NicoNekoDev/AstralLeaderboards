@@ -13,22 +13,10 @@ public class GsonUtil {
 
     public static <T> T fromOrToJson(T object, Class<T> clazz, File file) throws IOException {
         if (file.exists()) {
-            try (FileInputStream fis = new FileInputStream(file)) {
-                try (InputStreamReader isr = new InputStreamReader(fis, StandardCharsets.UTF_8)) {
-                    try (BufferedReader br = new BufferedReader(isr)) {
-                        return gson.fromJson(br, clazz);
-                    }
-                }
-            }
+            return load(clazz, file);
         } else {
-            try (FileOutputStream fos = new FileOutputStream(file)) {
-                try (OutputStreamWriter osw = new OutputStreamWriter(fos, StandardCharsets.UTF_8)) {
-                    try (BufferedWriter bw = new BufferedWriter(osw)) {
-                        gson.toJson(object, bw);
-                        return object;
-                    }
-                }
-            }
+            save(object, file);
+            return object;
         }
     }
 
@@ -37,6 +25,16 @@ public class GsonUtil {
             try (InputStreamReader isr = new InputStreamReader(fis, StandardCharsets.UTF_8)) {
                 try (BufferedReader br = new BufferedReader(isr)) {
                     return gson.fromJson(br, clazz);
+                }
+            }
+        }
+    }
+
+    public static <T> void save(T object, File file) throws IOException {
+        try (FileOutputStream fos = new FileOutputStream(file)) {
+            try (OutputStreamWriter osw = new OutputStreamWriter(fos, StandardCharsets.UTF_8)) {
+                try (BufferedWriter bw = new BufferedWriter(osw)) {
+                    gson.toJson(object, bw);
                 }
             }
         }

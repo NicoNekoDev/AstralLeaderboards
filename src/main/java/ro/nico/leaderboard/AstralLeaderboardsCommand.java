@@ -128,6 +128,47 @@ public class AstralLeaderboardsCommand implements TabExecutor {
                     } else
                         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getNoPermissionMessage()));
                 }
+                case "addtracker" -> {
+                    if (plugin.getVaultPermissions().has(sender, "astralleaderboards.command.addtracker")) {
+                        if (args.length == 4) {
+                            Board board = plugin.getBoardsManager().getBoard(args[1]);
+                            if (board == null) {
+                                sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getBoardNotFoundMessage().replace("%board%", args[1])));
+                            } else {
+                                String trackerId = args[2];
+                                String trackerValue = args[3];
+                                if (board.getBoardSettings().getTrackers().containsKey(trackerId)) {
+                                    sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getTrackerAlreadyExistsMessage().replace("%tracker%", trackerId)));
+                                } else {
+                                    board.getBoardSettings().getTrackers().put(trackerId, trackerValue);
+                                    sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getTrackerAddedMessage().replace("%tracker%", trackerId).replace("%value%", trackerValue)));
+                                }
+                            }
+                        } else
+                            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getTrackerAddUsageMessage()));
+                    } else
+                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getNoPermissionMessage()));
+                }
+                case "removetracker" -> {
+                    if (plugin.getVaultPermissions().has(sender, "astralleaderboards.command.removetracker")) {
+                        if (args.length == 3) {
+                            Board board = plugin.getBoardsManager().getBoard(args[1]);
+                            if (board == null) {
+                                sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getBoardNotFoundMessage().replace("%board%", args[1])));
+                            } else {
+                                String trackerId = args[2];
+                                if (!board.getBoardSettings().getTrackers().containsKey(trackerId)) {
+                                    sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getTrackerNotFoundMessage().replace("%tracker%", trackerId)));
+                                } else {
+                                    board.getBoardSettings().getTrackers().remove(trackerId);
+                                    sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getTrackerRemovedMessage().replace("%tracker%", trackerId)));
+                                }
+                            }
+                        } else
+                            sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getTrackerRemoveUsageMessage()));
+                    } else
+                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getNoPermissionMessage()));
+                }
             }
         }
         return true;
