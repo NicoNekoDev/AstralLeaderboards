@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableSet;
 import org.jetbrains.annotations.NotNull;
 import ro.nico.leaderboard.AstralLeaderboardsPlugin;
 import ro.nico.leaderboard.settings.BoardSettings;
+import ro.nico.leaderboard.util.GsonUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,9 +33,14 @@ public class BoardsManager {
         FileVisitor<Path> fileVisitor = new SimpleFileVisitor<>() {
             @Override
             public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) {
-                if (path.toString().endsWith(".yml")) {
-                    BoardSettings settings = new BoardSettings();
-                    BoardsManager.this.plugin.getConfigResolver().load(settings, path.toFile());
+                if (path.toString().endsWith(".json")) {
+                    BoardSettings settings;
+                    try {
+                        settings = GsonUtil.load(BoardSettings.class, path.toFile());
+                    } catch (IOException e) {
+                        plugin.getLogger().warning("Failed to load board settings from " + path);
+                        return FileVisitResult.CONTINUE;
+                    }
                     String id = settings.getId();
                     if (!BOARD_ID_PATTERN.matcher(id).matches()) {
                         plugin.getLogger().warning("Invalid board id: " + id);
@@ -64,17 +70,16 @@ public class BoardsManager {
         this.boards.clear();
     }
 
-    public Board createBoard(@NotNull String id, @NotNull String sorter) throws IllegalArgumentException {
+    public Board createBoard(@NotNull String id, @NotNull String sorter) throws IllegalArgumentException, IOException {
         if (this.hasBoard(id))
             throw new IllegalArgumentException("Board with id " + id + " already exists");
         if (!BOARD_ID_PATTERN.matcher(id).matches())
             throw new IllegalArgumentException("Invalid board id pattern: " + id);
-        BoardSettings boardSettings = new BoardSettings(id);
-        File boardFile = new File(this.boardsDirectory, id + ".yml");
-        this.plugin.getConfigResolver().load(boardSettings, boardFile);
+        BoardSettings boardSettings = new BoardSettings(id, sorter);
+        File boardFile = new File(this.boardsDirectory, id + ".json");
+        boardSettings = GsonUtil.fromOrToJson(boardSettings, BoardSettings.class, boardFile); // also check if a config file with the same board id exists, and load it
         Board board = new Board(this.plugin, id, boardFile, boardSettings);
         this.boards.put(id, board);
-        board.dumpSettings();
         return board;
     }
 

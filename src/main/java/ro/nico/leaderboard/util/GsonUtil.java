@@ -1,16 +1,46 @@
 package ro.nico.leaderboard.util;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
+import com.google.gson.*;
 
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
 public class GsonUtil {
-    private static final Gson gson = new Gson();
+    private static final Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+
+    public static <T> T fromOrToJson(T object, Class<T> clazz, File file) throws IOException {
+        if (file.exists()) {
+            try (FileInputStream fis = new FileInputStream(file)) {
+                try (InputStreamReader isr = new InputStreamReader(fis, StandardCharsets.UTF_8)) {
+                    try (BufferedReader br = new BufferedReader(isr)) {
+                        return gson.fromJson(br, clazz);
+                    }
+                }
+            }
+        } else {
+            try (FileOutputStream fos = new FileOutputStream(file)) {
+                try (OutputStreamWriter osw = new OutputStreamWriter(fos, StandardCharsets.UTF_8)) {
+                    try (BufferedWriter bw = new BufferedWriter(osw)) {
+                        gson.toJson(object, bw);
+                        return object;
+                    }
+                }
+            }
+        }
+    }
+
+    public static <T> T load(Class<T> clazz, File file) throws IOException {
+        try (FileInputStream fis = new FileInputStream(file)) {
+            try (InputStreamReader isr = new InputStreamReader(fis, StandardCharsets.UTF_8)) {
+                try (BufferedReader br = new BufferedReader(isr)) {
+                    return gson.fromJson(br, clazz);
+                }
+            }
+        }
+    }
 
     public static String convertMapToJson(Map<String, String> map) {
         JsonObject jsonObject = new JsonObject();

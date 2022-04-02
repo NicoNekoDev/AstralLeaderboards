@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ro.nico.leaderboard.api.Board;
+import ro.nico.leaderboard.settings.BoardSettings;
 import ro.nico.leaderboard.storage.SQLDateType;
 import ro.nico.leaderboard.util.SyncAsyncOnlinePlayersData;
 import ro.nico.leaderboard.util.SyncAsyncSortedData;
@@ -30,38 +31,40 @@ public class BoardData {
     private CompletableFuture<Map<Pair<String, UUID>, Pair<String, Map<String, String>>>> asyncFutureSortedData;
     private CompletableFuture<Set<Pair<String, UUID>>> asyncFutureOnlinePlayersData;
 
-    private Map<Triplet<String, UUID, SQLDateType>, CompletableFuture<Triplet<String, Map<String, String>, Integer>>> immediateOnlinePlayersSyncFutureLists;
-    private Map<Triplet<String, UUID, SQLDateType>, CompletableFuture<Pair<String, UUID>>> immediateOnlinePlayersAsyncFutureLists;
+    private final Map<Triplet<String, UUID, SQLDateType>, CompletableFuture<Triplet<String, Map<String, String>, Integer>>> immediateOnlinePlayersSyncFutureLists = new HashMap<>();
+    private final Map<Triplet<String, UUID, SQLDateType>, CompletableFuture<Pair<String, UUID>>> immediateOnlinePlayersAsyncFutureLists = new HashMap<>();
 
     public BoardData(@NotNull Board board) {
         this.board = board;
         this.sortedData = new IdentityHashMap<>(8) {
             {
                 put(SQLDateType.ALLTIME, new SyncAsyncSortedData());
-                if (board.getBoardSettings().isHourlyUpdated())
+                BoardSettings.UpdateSettings updateSettings = board.getBoardSettings().getUpdateSettings();
+                if (updateSettings.isHourlyUpdated())
                     put(SQLDateType.HOURLY, new SyncAsyncSortedData());
-                if (board.getBoardSettings().isDailyUpdated())
+                if (updateSettings.isDailyUpdated())
                     put(SQLDateType.DAILY, new SyncAsyncSortedData());
-                if (board.getBoardSettings().isWeeklyUpdated())
+                if (updateSettings.isWeeklyUpdated())
                     put(SQLDateType.WEEKLY, new SyncAsyncSortedData());
-                if (board.getBoardSettings().isMonthlyUpdated())
+                if (updateSettings.isMonthlyUpdated())
                     put(SQLDateType.MONTHLY, new SyncAsyncSortedData());
-                if (board.getBoardSettings().isYearlyUpdated())
+                if (updateSettings.isYearlyUpdated())
                     put(SQLDateType.YEARLY, new SyncAsyncSortedData());
             }
         };
         this.onlinePlayersData = new IdentityHashMap<>(8) {
             {
                 put(SQLDateType.ALLTIME, new SyncAsyncOnlinePlayersData());
-                if (board.getBoardSettings().isHourlyUpdated())
+                BoardSettings.UpdateSettings updateSettings = board.getBoardSettings().getUpdateSettings();
+                if (updateSettings.isHourlyUpdated())
                     put(SQLDateType.HOURLY, new SyncAsyncOnlinePlayersData());
-                if (board.getBoardSettings().isDailyUpdated())
+                if (updateSettings.isDailyUpdated())
                     put(SQLDateType.DAILY, new SyncAsyncOnlinePlayersData());
-                if (board.getBoardSettings().isWeeklyUpdated())
+                if (updateSettings.isWeeklyUpdated())
                     put(SQLDateType.WEEKLY, new SyncAsyncOnlinePlayersData());
-                if (board.getBoardSettings().isMonthlyUpdated())
+                if (updateSettings.isMonthlyUpdated())
                     put(SQLDateType.MONTHLY, new SyncAsyncOnlinePlayersData());
-                if (board.getBoardSettings().isYearlyUpdated())
+                if (updateSettings.isYearlyUpdated())
                     put(SQLDateType.YEARLY, new SyncAsyncOnlinePlayersData());
             }
         };
@@ -93,17 +96,19 @@ public class BoardData {
     }
 
     public void syncHeartbeat() {
-        Iterator<Map.Entry<Triplet<String, UUID, SQLDateType>, CompletableFuture<Triplet<String, Map<String, String>, Integer>>>> iterator = immediateOnlinePlayersSyncFutureLists.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<Triplet<String, UUID, SQLDateType>, CompletableFuture<Triplet<String, Map<String, String>, Integer>>> entry = iterator.next();
-            if (entry.getValue().isDone()) {
-                try {
-                    Triplet<String, UUID, SQLDateType> key = entry.getKey();
-                    Triplet<String, Map<String, String>, Integer> triplet = entry.getValue().get();
-                    this.onlinePlayersData.get(key.getThirdValue()).getSortedData().put(key.toPair(), new PlayerData(triplet.getFirstValue(), triplet.getSecondValue(), triplet.getThirdValue()));
-                    iterator.remove();
-                } catch (InterruptedException | ExecutionException e) {
-                    board.getPlugin().getLogger().log(Level.SEVERE, "Failed to sync player data", e);
+        if (!immediateOnlinePlayersAsyncFutureLists.isEmpty()) {
+            Iterator<Map.Entry<Triplet<String, UUID, SQLDateType>, CompletableFuture<Triplet<String, Map<String, String>, Integer>>>> iterator = immediateOnlinePlayersSyncFutureLists.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Map.Entry<Triplet<String, UUID, SQLDateType>, CompletableFuture<Triplet<String, Map<String, String>, Integer>>> entry = iterator.next();
+                if (entry.getValue().isDone()) {
+                    try {
+                        Triplet<String, UUID, SQLDateType> key = entry.getKey();
+                        Triplet<String, Map<String, String>, Integer> triplet = entry.getValue().get();
+                        this.onlinePlayersData.get(key.getThirdValue()).getSortedData().put(key.toPair(), new PlayerData(triplet.getFirstValue(), triplet.getSecondValue(), triplet.getThirdValue()));
+                        iterator.remove();
+                    } catch (InterruptedException | ExecutionException e) {
+                        board.getPlugin().getLogger().log(Level.SEVERE, "Failed to sync player data", e);
+                    }
                 }
             }
         }
@@ -124,20 +129,22 @@ public class BoardData {
     }
 
     public void asyncHeartbeat() {
-        Iterator<Map.Entry<Triplet<String, UUID, SQLDateType>, CompletableFuture<Pair<String, UUID>>>> iterator = immediateOnlinePlayersAsyncFutureLists.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<Triplet<String, UUID, SQLDateType>, CompletableFuture<Pair<String, UUID>>> entry = iterator.next();
-            if (entry.getValue().isDone()) {
-                try {
-                    Triplet<String, UUID, SQLDateType> key = entry.getKey();
-                    Pair<String, UUID> pair = entry.getValue().get();
-                    Triplet<String, Map<String, String>, Integer> data = this.board.getPlugin().getStorage().getOnlinePlayerDataImmediately(pair, board, key.getThirdValue());
-                    CompletableFuture<Triplet<String, Map<String, String>, Integer>> future = this.immediateOnlinePlayersSyncFutureLists.remove(key);
-                    if (future != null && !future.isDone())
-                        future.complete(data);
-                    iterator.remove();
-                } catch (InterruptedException | ExecutionException | SQLException e) {
-                    board.getPlugin().getLogger().log(Level.SEVERE, "Failed to sync player data", e);
+        if (!immediateOnlinePlayersAsyncFutureLists.isEmpty()) {
+            Iterator<Map.Entry<Triplet<String, UUID, SQLDateType>, CompletableFuture<Pair<String, UUID>>>> iterator = immediateOnlinePlayersAsyncFutureLists.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Map.Entry<Triplet<String, UUID, SQLDateType>, CompletableFuture<Pair<String, UUID>>> entry = iterator.next();
+                if (entry.getValue().isDone()) {
+                    try {
+                        Triplet<String, UUID, SQLDateType> key = entry.getKey();
+                        Pair<String, UUID> pair = entry.getValue().get();
+                        Triplet<String, Map<String, String>, Integer> data = this.board.getPlugin().getStorage().getOnlinePlayerDataImmediately(pair, board, key.getThirdValue());
+                        CompletableFuture<Triplet<String, Map<String, String>, Integer>> future = this.immediateOnlinePlayersSyncFutureLists.remove(key);
+                        if (future != null && !future.isDone())
+                            future.complete(data);
+                        iterator.remove();
+                    } catch (InterruptedException | ExecutionException | SQLException e) {
+                        board.getPlugin().getLogger().log(Level.SEVERE, "Failed to sync player data", e);
+                    }
                 }
             }
         }
@@ -187,8 +194,8 @@ public class BoardData {
                 if (board.hasPlayerExempt(name) || board.hasPlayerExempt(uuid))
                     continue;
                 Map<String, String> playerTrackers = new HashMap<>();
-                for (Map.Entry<String, Object> entry : board.getTrackers().entrySet()) {
-                    String entryValue = String.valueOf(entry.getValue());
+                for (Map.Entry<String, String> entry : board.getTrackers().entrySet()) {
+                    String entryValue = entry.getValue();
                     String value = PlaceholderAPI.setPlaceholders(player, entryValue);
                     if (entryValue.equals(value)) continue players_loop; // << continue to label
                     playerTrackers.put(entry.getKey(), value);

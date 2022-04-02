@@ -5,9 +5,9 @@ import io.github.NicoNekoDev.SimpleTuples.Quartet;
 import io.github.NicoNekoDev.SimpleTuples.Triplet;
 import ro.nico.leaderboard.AstralLeaderboardsPlugin;
 import ro.nico.leaderboard.api.Board;
+import ro.nico.leaderboard.settings.PluginSettings;
 import ro.nico.leaderboard.storage.SQLDateType;
 import ro.nico.leaderboard.util.GsonUtil;
-import ro.nico.leaderboard.settings.PluginSettings;
 
 import java.sql.*;
 import java.util.LinkedList;
@@ -23,14 +23,15 @@ public class MySQLStorage extends Storage {
         super(plugin);
     }
 
-    public void load(PluginSettings settings) throws SQLException {
-        String user = settings.getMySQLUser();
-        String pass = settings.getMySQLPassword();
-        String host = settings.getMySQLHost();
-        String port = settings.getMySQLPort();
-        String database = settings.getMySQLDatabase();
-        boolean sslEnabled = settings.isMySQLSSLEnabled();
-        this.table_prefix = settings.getMySQLTablePrefix();
+    public void load(PluginSettings.StorageSettings settings) throws SQLException {
+        PluginSettings.StorageSettings.StorageMySQLSettings mySQLSettings = settings.getMySQLSettings();
+        String user = mySQLSettings.getUsername();
+        String pass = mySQLSettings.getPassword();
+        String host = mySQLSettings.getHost();
+        int port = mySQLSettings.getPort();
+        String database = mySQLSettings.getDatabase();
+        boolean sslEnabled = mySQLSettings.isSSLEnabled();
+        this.table_prefix = mySQLSettings.getTablePrefix();
         this.connection = DriverManager.getConnection("jdbc:mysql://" + host + ":" + port + "/" + database + "?user=" + user + "&password=" + pass + "&useSSL=" + sslEnabled + "&autoReconnect=true");
 
         try (PreparedStatement statement = this.connection.prepareStatement("""

@@ -20,8 +20,8 @@ public class SQLiteStorage extends Storage {
         super(plugin);
     }
 
-    public void load(PluginSettings settings) throws SQLException {
-        this.connection = DriverManager.getConnection("jdbc:sqlite:" + super.plugin.getDataFolder() + File.separator + settings.getSQLiteFileName());
+    public void load(PluginSettings.StorageSettings settings) throws SQLException {
+        this.connection = DriverManager.getConnection("jdbc:sqlite:" + super.plugin.getDataFolder() + File.separator + settings.getSQLiteSettings().getFileName());
         try (PreparedStatement statement = this.connection.prepareStatement("""
                 CREATE TABLE IF NOT EXISTS `leaderboard` (
                 board_id VARCHAR(255) NOT NULL,

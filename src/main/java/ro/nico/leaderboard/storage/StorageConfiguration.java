@@ -20,14 +20,14 @@ public class StorageConfiguration extends Storage {
         super(plugin);
     }
 
-    public void load(PluginSettings config) throws SQLException {
+    public void load(PluginSettings.StorageSettings settings) throws SQLException {
         if (storage != null)
             storage.unload();
-        if (config.isUsingMySQL())
+        if (settings.isUsingMySQL())
             storage = new MySQLStorage(plugin);
         else
             storage = new SQLiteStorage(plugin);
-        storage.load(config);
+        storage.load(settings);
     }
 
     @Override

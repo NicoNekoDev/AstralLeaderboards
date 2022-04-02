@@ -1,7 +1,5 @@
 package ro.nico.leaderboard;
 
-import com.mrivanplays.annotationconfig.core.resolver.ConfigResolver;
-import com.mrivanplays.annotationconfig.yaml.YamlConfig;
 import lombok.Getter;
 import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
@@ -10,19 +8,20 @@ import org.bukkit.plugin.java.JavaPlugin;
 import ro.nico.leaderboard.api.BoardsManager;
 import ro.nico.leaderboard.api.PlaceholderAPIHook;
 import ro.nico.leaderboard.listener.PlayerEvents;
-import ro.nico.leaderboard.storage.StorageConfiguration;
 import ro.nico.leaderboard.settings.PluginSettings;
+import ro.nico.leaderboard.storage.StorageConfiguration;
+import ro.nico.leaderboard.util.GsonUtil;
 
 import java.io.File;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Objects;
 
 public class AstralLeaderboardsPlugin extends JavaPlugin {
-    @Getter private final PluginSettings settings = new PluginSettings();
+    private final File settingsFile = new File(this.getDataFolder(), "settings.json");
+    @Getter private PluginSettings settings = new PluginSettings();
     @Getter private final StorageConfiguration storage = new StorageConfiguration(this);
-    private final File settingsFile = new File(this.getDataFolder(), "settings.yml");
     @Getter private final BoardsManager boardsManager = new BoardsManager(this);
-    @Getter private final ConfigResolver configResolver = YamlConfig.getConfigResolver();
     @Getter private Permission vaultPermissions;
 
     @Override
@@ -64,11 +63,15 @@ public class AstralLeaderboardsPlugin extends JavaPlugin {
     }
 
     public void reloadPlugin() {
-        this.getDataFolder().mkdirs();
-        this.configResolver.loadOrDump(this.settings, this.settingsFile);
+        this.settingsFile.getParentFile().mkdirs();
+        try {
+            this.settings = GsonUtil.fromOrToJson(this.settings, PluginSettings.class, this.settingsFile);
+        } catch (IOException e) {
+            this.getLogger().severe("Failed to load settings!");
+        }
         try {
             this.storage.unload();
-            this.storage.load(this.settings);
+            this.storage.load(this.settings.getStorageSettings());
             this.boardsManager.unloadAllBoards();
             this.boardsManager.loadAllBoards();
         } catch (SQLException e) {

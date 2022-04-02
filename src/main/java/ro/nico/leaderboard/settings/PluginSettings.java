@@ -1,151 +1,157 @@
 package ro.nico.leaderboard.settings;
 
-import com.mrivanplays.annotationconfig.core.annotations.Key;
-import com.mrivanplays.annotationconfig.core.annotations.comment.Comment;
+import com.google.gson.annotations.SerializedName;
 import lombok.Getter;
 import lombok.NonNull;
 
+import java.util.LinkedList;
 import java.util.List;
 
+@SuppressWarnings("FieldMayBeFinal")
 public class PluginSettings {
 
     @NonNull
     @Getter
-    @Comment("The default placeholder used when the data was not found")
-    private final String defaultPlaceholder = "???";
-
-    @Getter
-    @Comment("If the plugin should use MySQL or SQLite")
-    @Key("storage.use_mysql")
-    private final boolean usingMySQL = false;
+    @SerializedName("default-placeholder")
+    private String defaultPlaceholder = "---";
 
     @NonNull
     @Getter
-    @Key("storage.mysql.user")
-    private final String MySQLUser = "root";
+    @SerializedName("storage")
+    private StorageSettings storageSettings = new StorageSettings();
 
     @NonNull
     @Getter
-    @Key("storage.mysql.password")
-    private final String MySQLPassword = "";
+    @SerializedName("messages")
+    private MessageSettings messageSettings = new MessageSettings();
 
-    @NonNull
-    @Getter
-    @Key("storage.mysql.host")
-    private final String MySQLHost = "localhost";
 
-    @NonNull
-    @Getter
-    @Key("storage.mysql.port")
-    private final String MySQLPort = "3306";
+    public static class StorageSettings {
+        @Getter
+        @SerializedName("use-mysql")
+        private final boolean usingMySQL = false;
 
-    @NonNull
-    @Getter
-    @Key("storage.mysql.database")
-    private final String MySQLDatabase = "leaderboard";
+        @Getter
+        @SerializedName("mysql")
+        private final StorageMySQLSettings MySQLSettings = new StorageMySQLSettings();
 
-    @Getter
-    @Key("storage.mysql.ssl_enabled")
-    private final boolean MySQLSSLEnabled = false;
+        @Getter
+        @SerializedName("sqlite")
+        private final StorageSQLiteSettings SQLiteSettings = new StorageSQLiteSettings();
 
-    @NonNull
-    @Getter
-    @Key("storage.mysql.table_prefix")
-    private final String MySQLTablePrefix = "astrallb_";
+        @SuppressWarnings("FieldMayBeFinal")
+        public static class StorageMySQLSettings {
+            @Getter private String host = "localhost";
+            @Getter private int port = 3306;
+            @Getter private String database = "leaderboard";
+            @Getter private String username = "root";
+            @Getter private String password = "";
+            @Getter @SerializedName("ssl_enabled") private boolean SSLEnabled = false;
+            @Getter @SerializedName("table_prefix") private String tablePrefix = "astrallb_";
+        }
 
-    @NonNull
-    @Getter
-    @Key("storage.sqlite.file_name")
-    private final String SQLiteFileName = "leaderboard.db";
+        public static class StorageSQLiteSettings {
+            @Getter
+            @SerializedName("file-name")
+            private final String fileName = "leaderboard.db";
+        }
+    }
 
-    @NonNull
-    @Getter
-    @Key("messages.help")
-    private final List<String> helpMessages = List.of(
-            "&a&m====================",
-            "&a&l&oAstralLeaderboards",
-            "",
-            "&e/astrallb help &7- &aShows this help.",
-            "&e/astrallb reload &7- &aReloads the config and boards.",
-            "&e/astrallb update <board> &7- &aForces a board update.",
-            "&e/astrallb create <board> <sorter> &7- &aCreates a new board.",
-            "&e/astrallb delete <board> &7- &aDeletes the board.",
-            "&e/astrallb data <board> <type> &7- &aShows the data of the board.",
-            "",
-            "&a&m====================");
+    @SuppressWarnings("FieldMayBeFinal")
+    public static class MessageSettings {
+        @Getter
+        @SerializedName("help")
+        private List<String> helpMessages = new LinkedList<>() {
+            {
+                add("&7&m-----------------------------------------------------");
+                add("&e/astrallb help &7- &aShows this help.");
+                add("&e/astrallb reload &7- &aReloads the config and boards.");
+                add("&e/astrallb update <board> &7- &aForces a board update.");
+                add("&e/astrallb create <board> <sorter> &7- &aCreates a new board.");
+                add("&e/astrallb delete <board> &7- &aDeletes the board.");
+                add("&e/astrallb data <board> <type> &7- &aShows the data of the board.");
+                add("&7&m-----------------------------------------------------");
+            }
+        };
 
-    @NonNull
-    @Getter
-    @Key("messages.board-update-usage")
-    private final String boardUpdateUsageMessage = "&cUsage: &e/astrallb update <board>";
+        @NonNull
+        @Getter
+        @SerializedName("board-update-usage")
+        private String boardUpdateUsageMessage = "&cUsage: &e/astrallb update <board>";
 
-    @NonNull
-    @Getter
-    @Key("messages.board-create-usage")
-    private final String boardCreateUsageMessage = "&cUsage: &e/astrallb create <board> <sorter>";
+        @NonNull
+        @Getter
+        @SerializedName("board-create-usage")
+        private String boardCreateUsageMessage = "&cUsage: &e/astrallb create <board> <sorter>";
 
-    @NonNull
-    @Getter
-    @Key("messages.board-update-usage")
-    private final String boardDeleteUsageMessage = "&cUsage: &e/astrallb delete <board>";
+        @NonNull
+        @Getter
+        @SerializedName("board-delete-usage")
+        private String boardDeleteUsageMessage = "&cUsage: &e/astrallb delete <board>";
 
-    @NonNull
-    @Getter
-    @Key("message.board-data-usage")
-    private final String boardDataUsageMessage = "&cUsage: &e/astrallb data <board> <date>";
+        @NonNull
+        @Getter
+        @SerializedName("board-data-usage")
+        private String boardDataUsageMessage = "&cUsage: &e/astrallb data <board> <date>";
 
-    @NonNull
-    @Getter
-    @Key("messages.no-permission")
-    private final String noPermissionMessage = "&cYou don't have permission to do that!";
+        @NonNull
+        @Getter
+        @SerializedName("no-permission")
+        private String noPermissionMessage = "&cYou don't have permission to do that!";
 
-    @NonNull
-    @Getter
-    @Key("messages.reload-success")
-    private final String reloadSuccessMessage = "&aSuccessfully reloaded the plugin!";
+        @NonNull
+        @Getter
+        @SerializedName("reload-success")
+        private String reloadSuccessMessage = "&aSuccessfully reloaded the plugin!";
 
-    @NonNull
-    @Getter
-    @Key("messages.board-create-success")
-    private final String boardCreateSuccessMessage = "&aSuccessfully created the board!";
+        @NonNull
+        @Getter
+        @SerializedName("board-create-success")
+        private String boardCreateSuccessMessage = "&aSuccessfully created the board!";
 
-    @NonNull
-    @Getter
-    @Key("messages.board-delete-success")
-    private final String boardDeleteSuccessMessage = "&aSuccessfully deleted the board!";
+        @NonNull
+        @Getter
+        @SerializedName("board-create-fail")
+        private String boardCreateErrorMessage = "&cError while creating the board! Please check console for more info.";
 
-    @NonNull
-    @Getter
-    @Key("messages.board-not-found")
-    private final String boardNotFoundMessage = "&cThe board &e%board% &cwas not found!";
+        @NonNull
+        @Getter
+        @SerializedName("board-delete-success")
+        private String boardDeleteSuccessMessage = "&aSuccessfully deleted the board!";
 
-    @NonNull
-    @Getter
-    @Key("messages.board-updated")
-    private final String boardUpdatedMessage = "&aSuccessfully updated the board &e%board%&a!";
+        @NonNull
+        @Getter
+        @SerializedName("board-not-found")
+        private String boardNotFoundMessage = "&cThe board &e%board% &cwas not found!";
 
-    @NonNull
-    @Getter
-    @Key("messages.board-already-exists")
-    private final String boardAlreadyExistsMessage = "&cThe board &e%board% &calready exists!";
+        @NonNull
+        @Getter
+        @SerializedName("board-updated")
+        private String boardUpdatedMessage = "&aSuccessfully updated the board &e%board%&a!";
 
-    @NonNull
-    @Getter
-    @Key("messages.board-id-invalid")
-    private final String boardInvalidIdMessage = "&cThe id is invalid! It mush only contain letters, numbers and dashes!";
+        @NonNull
+        @Getter
+        @SerializedName("board-already-exists")
+        private String boardAlreadyExistsMessage = "&cThe board &e%board% &calready exists!";
 
-    @NonNull
-    @Getter
-    @Key("messages.date-type-invalid")
-    private final String invalidDateTypeMessage = "&cThe date is invalid! It must be one of the following: &e%date_types%";
+        @NonNull
+        @Getter
+        @SerializedName("board-id-invalid")
+        private String boardInvalidIdMessage = "&cThe id is invalid! It mush only contain letters, numbers and dashes!";
 
-    @NonNull
-    @Getter
-    @Key("messages.data-header")
-    private final String boardDataHeaderMessage = "&e%board% &7- &aShowing %size% entries";
+        @NonNull
+        @Getter
+        @SerializedName("date-type-invalid")
+        private String invalidDateTypeMessage = "&cThe date is invalid! It must be one of the following: &e%date_types%";
 
-    @NonNull
-    @Getter
-    @Key("messages.data-header-entry")
-    private final String boardDataEntryMessage = "&e%rank%) &a%name% &7- &a%sorter% &7(&b%trackers%&7)";
+        @NonNull
+        @Getter
+        @SerializedName("data-header")
+        private String boardDataHeaderMessage = "&e%board% &7- &aShowing %size% entries";
+
+        @NonNull
+        @Getter
+        @SerializedName("data-header-entry")
+        private String boardDataEntryMessage = "&e%rank%) &a%name% &7- &a%sorter% &7(&b%trackers%&7)";
+    }
 }

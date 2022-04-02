@@ -1,128 +1,126 @@
 package ro.nico.leaderboard.settings;
 
-import com.mrivanplays.annotationconfig.core.annotations.Key;
-import com.mrivanplays.annotationconfig.core.annotations.comment.Comment;
+import com.google.gson.annotations.SerializedName;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-@NoArgsConstructor
+@SuppressWarnings("FieldMayBeFinal")
 public class BoardSettings {
 
-    public BoardSettings(@NotNull String id) {
-        this.id = id;
+    public BoardSettings() {
+        this.id = "default";
+        this.sorter = "%player_name%";
     }
 
-    @NonNull
-    @Getter
-    @Comment("The id of the board used")
-    @Comment("Must contain only letters, numbers and dashes")
-    @Key("board-id")
-    private String id = "default";
+    public BoardSettings(@NotNull String id, @NotNull String sorter) {
+        this.id = id;
+        this.sorter = sorter;
+    }
 
-    @NonNull
+
     @Getter
-    @Setter
-    @Comment("The value used to sort the leaderboard")
-    @Key("sorter")
-    private String sorter = "%player_name%";
+    @SerializedName("board-id")
+    private String id;
 
     @Getter
     @Setter
-    @Comment("Interval in seconds between leaderboard updates")
-    @Key("update-interval")
+    private String sorter;
+
+    @Getter
+    private Map<String, String> trackers = new LinkedHashMap<>() {
+        {
+            put("name", "%player_name%");
+            put("sorter", sorter);
+        }
+    };
+
+    @SerializedName("_comment-update-interval") private String updateIntervalComment = "Interval in seconds between placeholders updates";
+
+    @Getter
+    @Setter
+    @SerializedName("update-interval")
     private int updateInterval = 30;
 
+    @SerializedName("_comment-heartbeat-interval") private String heartbeatIntervalComment = "Interval in ticks used for async tasks checks";
+
     @Getter
     @Setter
-    @Comment("Interval in ticks used for async tasks checks")
-    @Key("heartbeat-interval")
+    @SerializedName("heartbeat-interval")
     private int heartbeatInterval = 20;
 
-    @Getter
-    @Setter
-    @Comment("If the leaderboard is reversed")
-    @Key("reversed")
-    private boolean reversed = false;
+    @SerializedName("_comment-row-size-1") private String rowSizeComment1 = "The amount of rows to load from the database for the top players.";
+    @SerializedName("_comment-row-size-2") private String rowSizeComment2 = "This setting would affect the performance of the leaderboard update.";
 
     @Getter
     @Setter
-    @Comment("The amount of rows to load from the database for the top players")
-    @Comment("This setting would affect the performance of the leaderboard update")
-    @Key("row-size")
+    @SerializedName("row-size")
     private int rowSize = 15;
 
-    @NonNull
+    @SerializedName("_comment-reversed") private String reversedComment = "If true, the leaderboard will be sorted in descending order.";
+
     @Getter
     @Setter
-    @Comment("The default tracker placeholder if no data was found")
-    @Key("default-tracker")
+    private boolean reversed = false;
+
+    @SerializedName("_comment-default-tracker") private String defaultTrackerComment = "The default tracker placeholder if no data was found";
+
+    @Getter
+    @Setter
+    @SerializedName("default-tracker")
     private String defaultTrackerPlaceholder = "---";
 
-    @Getter
-    @Setter
-    @Comment("If the leaderboard should use the 'hourly' date type")
-    @Key("update.hourly")
-    private boolean hourlyUpdated = false;
+    @SerializedName("_comment-update-1") private String updateComment1 = "If the leaderboard should use any update interval.";
+    @SerializedName("_comment-update-2") private String updateComment2 = "This would affect the performance of the leaderboard update.";
 
     @Getter
-    @Setter
-    @Comment("If the leaderboard should use the 'daily' date type")
-    @Key("update.daily")
-    private boolean dailyUpdated = false;
+    @SerializedName("update")
+    private UpdateSettings updateSettings = new UpdateSettings();
 
     @Getter
-    @Setter
-    @Comment("If the leaderboard should use the 'weekly' date type")
-    @Key("update.weekly")
-    private boolean weeklyUpdated = false;
+    @SerializedName("exempt-players")
+    private ExemptPlayersSettings exemptPlayersSettings = new ExemptPlayersSettings();
 
-    @Getter
-    @Setter
-    @Comment("If the leaderboard should use the 'monthly' date type")
-    @Key("update.monthly")
-    private boolean monthlyUpdated = false;
+    public static class UpdateSettings {
+        @Getter
+        @Setter
+        @SerializedName("hourly")
+        private boolean hourlyUpdated = false;
 
-    @Getter
-    @Setter
-    @Comment("If the leaderboard should use the 'yearly' date type")
-    @Key("update.yearly")
-    private boolean yearlyUpdated = false;
+        @Getter
+        @Setter
+        @SerializedName("daily")
+        private boolean dailyUpdated = false;
 
-    @NonNull
-    @Getter
-    @Comment("Trackers used by the leaderboard display.")
-    @Comment("For example in the placeholder %astrallb_<board>_<position>_<tracker>_<date>%")
-    @Comment("the '<tracker>' is used to get the data from here.")
-    @Comment("")
-    @Comment("trackers:")
-    @Comment("  display: \"%player_displayname%\"")
-    @Comment("  kills: \"%player_kills%\"")
-    @Comment("")
-    @Comment("Here the trackers will be 'display' and 'kills'")
-    @Key("trackers")
-    private final Map<String, Object> trackers = new LinkedHashMap<>() {
-        {
-            put("display", "%player_displayname%");
-            put("kills", "%player_kills%");
-        }
-    };
+        @Getter
+        @Setter
+        @SerializedName("weekly")
+        private boolean weeklyUpdated = false;
 
-    @Getter
-    @Comment("A list of exempted players names from the leaderboard who's values will not be displayed")
-    @Key("exempted-players.names")
-    private final Set<String> exemptPlayersNames = new LinkedHashSet<>() {
-        {
-            add("ExamplePlayerName");
-        }
-    };
+        @Getter
+        @Setter
+        @SerializedName("monthly")
+        private boolean monthlyUpdated = false;
 
-    @Getter
-    @Comment("A list of exempted players uuids from the leaderboard who's values will not be displayed")
-    @Key("exempted-players.uuids")
-    private final Set<String> exemptPlayersUUIDs = new HashSet<>();
+        @Getter
+        @Setter
+        @SerializedName("yearly")
+        private boolean yearlyUpdated = false;
+    }
+
+    public static class ExemptPlayersSettings {
+        @Getter
+        @SerializedName("names")
+        private Set<String> exemptPlayersNames = new LinkedHashSet<>() {
+            {
+                add("ExamplePlayerName");
+            }
+        };
+
+        @Getter
+        @SerializedName("uuids")
+        private Set<String> exemptPlayersUUIDs = new LinkedHashSet<>();
+    }
 }

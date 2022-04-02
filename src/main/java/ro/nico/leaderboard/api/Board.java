@@ -24,10 +24,10 @@ public class Board {
 
     public Board(@NotNull AstralLeaderboardsPlugin plugin, @NotNull String id, @NotNull File boardFile, @NotNull BoardSettings boardSettings) {
         this.plugin = plugin;
-        this.boardData = new BoardData(this);
         this.id = id;
         this.boardFile = boardFile;
         this.boardSettings = boardSettings;
+        this.boardData = new BoardData(this); // KEEP ORDER
     }
 
     public Board addTracker(@NotNull String trackerId, @NotNull String trackerPlaceholder) {
@@ -46,34 +46,34 @@ public class Board {
     }
 
     public boolean hasPlayerExempt(@NotNull String name) {
-        return this.boardSettings.getExemptPlayersNames().contains(name);
+        return this.boardSettings.getExemptPlayersSettings().getExemptPlayersNames().contains(name);
     }
 
     public boolean hasPlayerExempt(@NotNull UUID playerUUID) {
-        return this.boardSettings.getExemptPlayersUUIDs().contains(playerUUID.toString());
+        return this.boardSettings.getExemptPlayersSettings().getExemptPlayersUUIDs().contains(playerUUID.toString());
     }
 
     public Board addExemptPlayer(@NotNull String playerName) {
-        this.boardSettings.getExemptPlayersNames().add(playerName);
+        this.boardSettings.getExemptPlayersSettings().getExemptPlayersNames().add(playerName);
         return this;
     }
 
     public Board addExemptPlayer(@NotNull UUID playerUUID) {
-        this.boardSettings.getExemptPlayersUUIDs().add(playerUUID.toString());
+        this.boardSettings.getExemptPlayersSettings().getExemptPlayersUUIDs().add(playerUUID.toString());
         return this;
     }
 
     @NotNull
-    public Map<String, Object> getTrackers() {
+    public Map<String, String> getTrackers() {
         return this.boardSettings.getTrackers();
     }
 
     protected void loadSettings() {
-        this.plugin.getConfigResolver().load(this.boardSettings, this.boardFile);
+        //this.plugin.getConfigResolver().load(this.boardSettings, this.boardFile);
     }
 
-    protected void dumpSettings() {
-        this.plugin.getConfigResolver().dump(this.boardSettings, this.boardFile);
+    protected void saveSettings() {
+        //this.plugin.getConfigResolver().dump(this.boardSettings, this.boardFile);
     }
 
     protected void enable() {

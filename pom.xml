@@ -32,10 +32,6 @@
             <id>jitpack-repo</id>
             <url>https://jitpack.io</url>
         </repository>
-        <repository>
-            <id>ivan</id>
-            <url>https://repo.mrivanplays.com/repository/ivan/</url>
-        </repository>
     </repositories>
 
     <dependencies>
@@ -62,12 +58,6 @@
             <artifactId>VaultAPI</artifactId>
             <version>1.7</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.mrivanplays</groupId>
-            <artifactId>annotationconfig-yaml</artifactId>
-            <version>2.1.1</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
