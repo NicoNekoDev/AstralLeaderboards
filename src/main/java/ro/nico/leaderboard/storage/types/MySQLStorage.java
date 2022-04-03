@@ -11,10 +11,7 @@ import ro.nico.leaderboard.storage.settings.StorageSettings;
 import ro.nico.leaderboard.util.GsonUtil;
 
 import java.sql.*;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public class MySQLStorage extends Storage {
     private Connection connection;
@@ -57,7 +54,7 @@ public class MySQLStorage extends Storage {
     }
 
     @Override
-    public void putPlayerDataForBoard(Board board, Map<Pair<String, UUID>, Pair<String, Map<String, String>>> sortedData) {
+    public void putPlayerDataForBoard(Board board, Map<Pair<String, UUID>, Pair<String, Map<String, String>>> sortedData) throws SQLException {
         try (PreparedStatement statement = this.connection.prepareStatement("""
                 INSERT INTO ? (board_id, player_name, player_uuid, sorter, trackers, date)
                 VALUES (?, ?, ?, ?, ?, DATE('now')) ON DUPLICATE KEY UPDATE sorter = ?, trackers = ?, date = NOW();
@@ -76,13 +73,11 @@ public class MySQLStorage extends Storage {
                 statement.addBatch();
             }
             statement.executeBatch();
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 
     @Override
-    public LinkedList<Quartet<Pair<String, UUID>, String, Map<String, String>, Integer>> getPlayersDataForBoard(Board board, SQLDateType dateType) throws SQLException {
+    public LinkedList<Quartet<Pair<String, UUID>, String, Map<String, String>, Integer>> getPlayersDataForBoard(Board board, SQLDateType dateType, Set<String> exemptedPlayers) throws SQLException {
         LinkedList<Quartet<Pair<String, UUID>, String, Map<String, String>, Integer>> result = new LinkedList<>();
         String query = board.getBoardSettings().isReversed() ?
                 switch (dateType) {

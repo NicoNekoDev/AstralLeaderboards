@@ -113,11 +113,20 @@ public class AstralLeaderboardsCommand implements TabExecutor {
                                 try {
                                     SQLDateType dateType = SQLDateType.valueOf(args[2].toUpperCase());
                                     ImmutableMap<Pair<String, UUID>, PlayerData> data = board.getBoardData().dumpAllData(dateType);
+                                    sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getDataHeaderMessage()
+                                            .replace("%board%", board.getId())
+                                            .replace("%size%", String.valueOf(board.getBoardSettings().getRowSize()))));
                                     for (Map.Entry<Pair<String, UUID>, PlayerData> entry : data.entrySet()) {
                                         Pair<String, UUID> key = entry.getKey();
                                         PlayerData value = entry.getValue();
-                                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getDataHeaderMessage().replace("%board%", board.getId()).replace("%size%", String.valueOf(board.getBoardSettings().getRowSize()))));
-                                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getDataHeaderEntryMessage().replace("%name%", key.getFirstValue()).replace("%uuid%", key.getSecondValue().toString()).replace("%sorter%", value.getSorter()).replace("%rank%", String.valueOf(value.getRank())).replace("%trackers%", this.trackersToString(value.getTrackers()))));
+                                        sender.sendMessage(
+                                                ChatColor.translateAlternateColorCodes('&',
+                                                        messageSettings.getDataHeaderEntryMessage()
+                                                                .replace("%name%", key.getFirstValue())
+                                                                .replace("%uuid%", key.getSecondValue().toString())
+                                                                .replace("%sorter%", value.getSorter())
+                                                                .replace("%rank%", String.valueOf(value.getRank()))
+                                                                .replace("%trackers%", this.trackersToString(value.getTrackers()))));
                                     }
                                 } catch (IllegalArgumentException e) {
                                     sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getInvalidDateTypeMessage().replace("%type%", args[2]).replace("%date_types%", Arrays.stream(SQLDateType.values()).map(type -> type.name().toLowerCase()).collect(Collectors.joining(", ")))));

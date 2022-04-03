@@ -15,7 +15,6 @@ import ro.nico.leaderboard.storage.cache.BoardData;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
-import java.util.UUID;
 
 public class Board {
     private final File boardFile;
@@ -53,20 +52,11 @@ public class Board {
     }
 
     public boolean hasPlayerExempt(@NotNull String name) {
-        return this.boardSettings.getExemptPlayersNames().contains(name);
-    }
-
-    public boolean hasPlayerExempt(@NotNull UUID playerUUID) {
-        return this.boardSettings.getExemptPlayersUUIDs().contains(playerUUID.toString());
+        return this.boardSettings.getExemptPlayers().contains(name);
     }
 
     public Board addExemptPlayer(@NotNull String playerName) {
-        this.boardSettings.getExemptPlayersNames().add(playerName);
-        return this;
-    }
-
-    public Board addExemptPlayer(@NotNull UUID playerUUID) {
-        this.boardSettings.getExemptPlayersUUIDs().add(playerUUID.toString());
+        this.boardSettings.getExemptPlayers().add(playerName);
         return this;
     }
 

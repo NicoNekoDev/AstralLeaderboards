@@ -83,6 +83,7 @@ public class BoardsManager {
         board.loadSettings();
         this.boards.put(id, board);
         board.saveSettings();
+        board.enable();
         return board;
     }
 

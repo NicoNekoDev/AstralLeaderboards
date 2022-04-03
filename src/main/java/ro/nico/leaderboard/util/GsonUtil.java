@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class GsonUtil {
-    private static final Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+    private static final Gson gson = new GsonBuilder().create();
 
     public static String convertMapToJson(Map<String, String> map) {
         JsonObject jsonObject = new JsonObject();

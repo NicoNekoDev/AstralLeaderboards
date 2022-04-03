@@ -9,10 +9,7 @@ import ro.nico.leaderboard.storage.SQLDateType;
 import ro.nico.leaderboard.storage.settings.StorageSettings;
 
 import java.sql.SQLException;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public abstract class Storage {
     protected final AstralLeaderboardsPlugin plugin;
@@ -27,7 +24,7 @@ public abstract class Storage {
 
     public abstract void putPlayerDataForBoard(Board board, Map<Pair<String, UUID>, Pair<String, Map<String, String>>> sortedData) throws SQLException;
 
-    public abstract LinkedList<Quartet<Pair<String, UUID>, String, Map<String, String>, Integer>> getPlayersDataForBoard(Board board, SQLDateType type) throws SQLException;
+    public abstract LinkedList<Quartet<Pair<String, UUID>, String, Map<String, String>, Integer>> getPlayersDataForBoard(Board board, SQLDateType dateType, Set<String> exemptedPlayers) throws SQLException;
 
     public abstract Map<Pair<String, UUID>, Triplet<String, Map<String, String>, Integer>> getOnlinePlayersDataForBoard(Set<Pair<String, UUID>> players, Board board, SQLDateType dateType) throws SQLException;
 

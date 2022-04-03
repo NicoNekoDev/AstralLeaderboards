@@ -27,7 +27,7 @@ public class LinkedMapList<K, V> {
         map.putAll(other.map);
     }
 
-    protected Map<K, V> asMap() {
+    public Map<K, V> asMap() {
         return map;
     }
 

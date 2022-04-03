@@ -76,11 +76,11 @@ public class BoardData {
     }
 
     public PlayerData getData(Player player, @NotNull SQLDateType type) {
-        return this.onlinePlayersData.get(type).getSortedData().get(Pair.of(player.getName(), player.getUniqueId()));
+        return this.onlinePlayersData.get(type).getPlayerData().get(Pair.of(player.getName(), player.getUniqueId()));
     }
 
     public ImmutableMap<Pair<String, UUID>, PlayerData> dumpAllData(@NotNull SQLDateType type) {
-        return this.sortedData.get(type).dumpAllData();
+        return ImmutableMap.copyOf(this.sortedData.get(type).getSortedData().asMap());
     }
 
     public void updatePlayerDataImmediately(Player player) {
@@ -104,7 +104,7 @@ public class BoardData {
                     try {
                         Triplet<String, UUID, SQLDateType> key = entry.getKey();
                         Triplet<String, Map<String, String>, Integer> triplet = entry.getValue().get();
-                        this.onlinePlayersData.get(key.getThirdValue()).getSortedData().put(key.toPair(), new PlayerData(triplet.getFirstValue(), triplet.getSecondValue(), triplet.getThirdValue()));
+                        this.onlinePlayersData.get(key.getThirdValue()).getPlayerData().put(key.toPair(), new PlayerData(triplet.getFirstValue(), triplet.getSecondValue(), triplet.getThirdValue()));
                         iterator.remove();
                     } catch (InterruptedException | ExecutionException e) {
                         board.getPlugin().getLogger().log(Level.SEVERE, "Failed to sync player data", e);
@@ -191,24 +191,25 @@ public class BoardData {
             for (Player player : Bukkit.getOnlinePlayers()) {
                 UUID uuid = player.getUniqueId();
                 String name = player.getName();
-                if (board.hasPlayerExempt(name) || board.hasPlayerExempt(uuid))
-                    continue;
-                Map<String, String> playerTrackers = new HashMap<>();
-                for (Map.Entry<String, String> entry : board.getTrackers().entrySet()) {
-                    String entryValue = entry.getValue();
-                    String value = PlaceholderAPI.setPlaceholders(player, entryValue);
-                    if (entryValue.equals(value)) continue players_loop; // << continue to label
-                    playerTrackers.put(entry.getKey(), value);
-                }
                 String boardSorter = this.board.getBoardSettings().getSorter();
                 String sorter = PlaceholderAPI.setPlaceholders(player, boardSorter);
-                if (boardSorter.equals(sorter)) continue; // << continue to label
+                if (boardSorter.equals(sorter))
+                    continue;
+                Map<String, String> playerTrackers = new HashMap<>();
+                for (String entryKey : board.getBoardSettings().getTrackers().getKeys(false)) {
+                    String entryValue = board.getBoardSettings().getTrackers().getString(entryKey, "%sorter%");
+                    String value = PlaceholderAPI.setPlaceholders(player, entryValue).replace("%sorter%", sorter);
+                    if (entryValue.equals(value))
+                        continue players_loop; // << continue to label
+                    playerTrackers.put(entryKey, value);
+                }
                 playerData.put(Pair.of(name, uuid), Pair.of(sorter, playerTrackers));
             }
             this.asyncFutureSortedData.complete(playerData);
         }
         if (this.asyncFutureOnlinePlayersData == null || this.asyncFutureOnlinePlayersData.isDone()) {
             this.asyncFutureOnlinePlayersData = new CompletableFuture<>();
+            this.onlinePlayersData.forEach((type, data) -> data.update());
             this.asyncFutureOnlinePlayersData.complete(Bukkit.getOnlinePlayers().stream().map(player -> Pair.of(player.getName(), player.getUniqueId())).collect(Collectors.toSet()));
         }
     }

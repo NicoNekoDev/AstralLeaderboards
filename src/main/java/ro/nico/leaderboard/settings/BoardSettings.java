@@ -52,8 +52,7 @@ public class BoardSettings implements SettingsSerializer {
         this.defaultTrackerPlaceholder = SettingsUtil.getOrSetStringFunction().apply(section, "default-tracker", this.defaultTrackerPlaceholder,
                 Optional.of(List.of("The default tracker placeholder to be used if no tracker is found in the database.", "Default is \"---\".")));
         this.updateSettings.load(SettingsUtil.getOrCreateSection().apply(section, "updates", Optional.of(List.of(""))));
-        this.exemptPlayersNames.addAll(SettingsUtil.getOrSetStringCollectionFunction().apply(section, "exempt-players.names", this.exemptPlayersNames, Optional.empty()));
-        this.exemptPlayersUUIDs.addAll(SettingsUtil.getOrSetStringCollectionFunction().apply(section, "exempt-players.uuids", this.exemptPlayersUUIDs, Optional.empty()));
+        this.exemptPlayers.addAll(SettingsUtil.getOrSetStringCollectionFunction().apply(section, "exempt-players", this.exemptPlayers, Optional.empty()));
     }
 
     @Getter
@@ -91,12 +90,9 @@ public class BoardSettings implements SettingsSerializer {
     private final UpdateSettings updateSettings = new UpdateSettings();
 
     @Getter
-    private final Set<String> exemptPlayersNames = new LinkedHashSet<>() {
+    private final Set<String> exemptPlayers = new LinkedHashSet<>() {
         {
             add("ExamplePlayerName");
         }
     };
-
-    @Getter
-    private final Set<String> exemptPlayersUUIDs = new LinkedHashSet<>();
 }

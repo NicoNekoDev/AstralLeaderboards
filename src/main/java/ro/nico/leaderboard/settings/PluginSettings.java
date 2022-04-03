@@ -19,7 +19,7 @@ public class PluginSettings implements SettingsSerializer {
 
     @NonNull
     @Getter
-    private String defaultPlaceholder = "---";
+    private String defaultPlaceholder = "???";
 
     @NonNull
     @Getter

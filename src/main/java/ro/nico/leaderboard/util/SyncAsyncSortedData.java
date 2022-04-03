@@ -1,6 +1,5 @@
 package ro.nico.leaderboard.util;
 
-import com.google.common.collect.ImmutableMap;
 import io.github.NicoNekoDev.SimpleTuples.Pair;
 import io.github.NicoNekoDev.SimpleTuples.Quartet;
 import lombok.Getter;
@@ -32,14 +31,10 @@ public class SyncAsyncSortedData {
 
     public void asyncHeartbeat(Board board) throws SQLException {
         if (this.syncFuture != null)
-            this.syncFuture.complete(board.getPlugin().getStorage().getPlayersDataForBoard(board, SQLDateType.ALLTIME));
+            this.syncFuture.complete(board.getPlugin().getStorage().getPlayersDataForBoard(board, SQLDateType.ALLTIME, board.getBoardSettings().getExemptPlayers()));
     }
 
     public void update() {
         this.syncFuture = new CompletableFuture<>();
-    }
-
-    public ImmutableMap<Pair<String, UUID>, PlayerData> dumpAllData() {
-        return ImmutableMap.copyOf(this.sortedData.asMap());
     }
 }

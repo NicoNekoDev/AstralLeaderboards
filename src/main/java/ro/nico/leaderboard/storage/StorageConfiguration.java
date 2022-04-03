@@ -43,9 +43,9 @@ public class StorageConfiguration extends Storage {
     }
 
     @Override
-    public LinkedList<Quartet<Pair<String, UUID>, String, Map<String, String>, Integer>> getPlayersDataForBoard(Board board, SQLDateType type) throws SQLException {
+    public LinkedList<Quartet<Pair<String, UUID>, String, Map<String, String>, Integer>> getPlayersDataForBoard(Board board, SQLDateType type, Set<String> exemptedPlayers) throws SQLException {
         if (this.storage != null)
-            return this.storage.getPlayersDataForBoard(board, type);
+            return this.storage.getPlayersDataForBoard(board, type, exemptedPlayers);
         return new LinkedList<>();
     }
 
