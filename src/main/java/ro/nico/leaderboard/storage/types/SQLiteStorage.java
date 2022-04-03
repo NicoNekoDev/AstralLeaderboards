@@ -6,8 +6,8 @@ import io.github.NicoNekoDev.SimpleTuples.Triplet;
 import ro.nico.leaderboard.AstralLeaderboardsPlugin;
 import ro.nico.leaderboard.api.Board;
 import ro.nico.leaderboard.storage.SQLDateType;
+import ro.nico.leaderboard.storage.settings.StorageSettings;
 import ro.nico.leaderboard.util.GsonUtil;
-import ro.nico.leaderboard.settings.PluginSettings;
 
 import java.io.File;
 import java.sql.*;
@@ -20,7 +20,7 @@ public class SQLiteStorage extends Storage {
         super(plugin);
     }
 
-    public void load(PluginSettings.StorageSettings settings) throws SQLException {
+    public void load(StorageSettings settings) throws SQLException {
         this.connection = DriverManager.getConnection("jdbc:sqlite:" + super.plugin.getDataFolder() + File.separator + settings.getSQLiteSettings().getFileName());
         try (PreparedStatement statement = this.connection.prepareStatement("""
                 CREATE TABLE IF NOT EXISTS `leaderboard` (

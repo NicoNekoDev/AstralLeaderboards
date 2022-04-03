@@ -7,12 +7,13 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ro.nico.leaderboard.api.Board;
 import ro.nico.leaderboard.api.BoardsManager;
-import ro.nico.leaderboard.settings.PluginSettings;
+import ro.nico.leaderboard.settings.MessageSettings;
 import ro.nico.leaderboard.storage.SQLDateType;
 import ro.nico.leaderboard.storage.cache.PlayerData;
 
@@ -29,7 +30,7 @@ public class AstralLeaderboardsCommand implements TabExecutor {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
-        PluginSettings.MessageSettings messageSettings = plugin.getSettings().getMessageSettings();
+        MessageSettings messageSettings = plugin.getSettings().getMessageSettings();
         if (args.length == 0) {
             if (plugin.getVaultPermissions().has(sender, "astralleaderboards.command.help")) this.sendHelp(sender);
             else
@@ -77,8 +78,8 @@ public class AstralLeaderboardsCommand implements TabExecutor {
                                     try {
                                         Board board = plugin.getBoardsManager().createBoard(args[1], args[2]);
                                         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getBoardCreateSuccessMessage().replace("%board%", board.getId())));
-                                    } catch (IOException e) {
-                                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getBoardCreateErrorMessage().replace("%board%", args[1])));
+                                    } catch (IOException | InvalidConfigurationException e) {
+                                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getBoardCreateFailMessage().replace("%board%", args[1])));
                                     }
                                 }
                             }
@@ -115,8 +116,8 @@ public class AstralLeaderboardsCommand implements TabExecutor {
                                     for (Map.Entry<Pair<String, UUID>, PlayerData> entry : data.entrySet()) {
                                         Pair<String, UUID> key = entry.getKey();
                                         PlayerData value = entry.getValue();
-                                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getBoardDataHeaderMessage().replace("%board%", board.getId()).replace("%size%", String.valueOf(board.getBoardSettings().getRowSize()))));
-                                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getBoardDataEntryMessage().replace("%name%", key.getFirstValue()).replace("%uuid%", key.getSecondValue().toString()).replace("%sorter%", value.getSorter()).replace("%rank%", String.valueOf(value.getRank())).replace("%trackers%", this.trackersToString(value.getTrackers()))));
+                                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getDataHeaderMessage().replace("%board%", board.getId()).replace("%size%", String.valueOf(board.getBoardSettings().getRowSize()))));
+                                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getDataHeaderEntryMessage().replace("%name%", key.getFirstValue()).replace("%uuid%", key.getSecondValue().toString()).replace("%sorter%", value.getSorter()).replace("%rank%", String.valueOf(value.getRank())).replace("%trackers%", this.trackersToString(value.getTrackers()))));
                                     }
                                 } catch (IllegalArgumentException e) {
                                     sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getInvalidDateTypeMessage().replace("%type%", args[2]).replace("%date_types%", Arrays.stream(SQLDateType.values()).map(type -> type.name().toLowerCase()).collect(Collectors.joining(", ")))));
@@ -137,10 +138,10 @@ public class AstralLeaderboardsCommand implements TabExecutor {
                             } else {
                                 String trackerId = args[2];
                                 String trackerValue = args[3];
-                                if (board.getBoardSettings().getTrackers().containsKey(trackerId)) {
+                                if (board.getTrackers().containsKey(trackerId)) {
                                     sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getTrackerAlreadyExistsMessage().replace("%tracker%", trackerId)));
                                 } else {
-                                    board.getBoardSettings().getTrackers().put(trackerId, trackerValue);
+                                    board.addTracker(trackerId, trackerValue);
                                     sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getTrackerAddedMessage().replace("%tracker%", trackerId).replace("%value%", trackerValue)));
                                 }
                             }
@@ -157,10 +158,10 @@ public class AstralLeaderboardsCommand implements TabExecutor {
                                 sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getBoardNotFoundMessage().replace("%board%", args[1])));
                             } else {
                                 String trackerId = args[2];
-                                if (!board.getBoardSettings().getTrackers().containsKey(trackerId)) {
+                                if (!board.getTrackers().containsKey(trackerId)) {
                                     sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getTrackerNotFoundMessage().replace("%tracker%", trackerId)));
                                 } else {
-                                    board.getBoardSettings().getTrackers().remove(trackerId);
+                                    board.removeTracker(trackerId);
                                     sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getTrackerRemovedMessage().replace("%tracker%", trackerId)));
                                 }
                             }

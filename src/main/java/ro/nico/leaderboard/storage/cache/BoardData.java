@@ -11,7 +11,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ro.nico.leaderboard.api.Board;
-import ro.nico.leaderboard.settings.BoardSettings;
+import ro.nico.leaderboard.settings.UpdateSettings;
 import ro.nico.leaderboard.storage.SQLDateType;
 import ro.nico.leaderboard.util.SyncAsyncOnlinePlayersData;
 import ro.nico.leaderboard.util.SyncAsyncSortedData;
@@ -39,7 +39,7 @@ public class BoardData {
         this.sortedData = new IdentityHashMap<>(8) {
             {
                 put(SQLDateType.ALLTIME, new SyncAsyncSortedData());
-                BoardSettings.UpdateSettings updateSettings = board.getBoardSettings().getUpdateSettings();
+                UpdateSettings updateSettings = board.getBoardSettings().getUpdateSettings();
                 if (updateSettings.isHourlyUpdated())
                     put(SQLDateType.HOURLY, new SyncAsyncSortedData());
                 if (updateSettings.isDailyUpdated())
@@ -55,7 +55,7 @@ public class BoardData {
         this.onlinePlayersData = new IdentityHashMap<>(8) {
             {
                 put(SQLDateType.ALLTIME, new SyncAsyncOnlinePlayersData());
-                BoardSettings.UpdateSettings updateSettings = board.getBoardSettings().getUpdateSettings();
+                UpdateSettings updateSettings = board.getBoardSettings().getUpdateSettings();
                 if (updateSettings.isHourlyUpdated())
                     put(SQLDateType.HOURLY, new SyncAsyncOnlinePlayersData());
                 if (updateSettings.isDailyUpdated())

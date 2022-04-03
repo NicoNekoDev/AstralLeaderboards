@@ -5,8 +5,9 @@ import io.github.NicoNekoDev.SimpleTuples.Quartet;
 import io.github.NicoNekoDev.SimpleTuples.Triplet;
 import ro.nico.leaderboard.AstralLeaderboardsPlugin;
 import ro.nico.leaderboard.api.Board;
-import ro.nico.leaderboard.settings.PluginSettings;
 import ro.nico.leaderboard.storage.SQLDateType;
+import ro.nico.leaderboard.storage.settings.StorageMySQLSettings;
+import ro.nico.leaderboard.storage.settings.StorageSettings;
 import ro.nico.leaderboard.util.GsonUtil;
 
 import java.sql.*;
@@ -23,8 +24,8 @@ public class MySQLStorage extends Storage {
         super(plugin);
     }
 
-    public void load(PluginSettings.StorageSettings settings) throws SQLException {
-        PluginSettings.StorageSettings.StorageMySQLSettings mySQLSettings = settings.getMySQLSettings();
+    public void load(StorageSettings settings) throws SQLException {
+        StorageMySQLSettings mySQLSettings = settings.getMySQLSettings();
         String user = mySQLSettings.getUsername();
         String pass = mySQLSettings.getPassword();
         String host = mySQLSettings.getHost();

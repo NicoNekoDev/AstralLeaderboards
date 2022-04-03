@@ -5,8 +5,8 @@ import io.github.NicoNekoDev.SimpleTuples.Quartet;
 import io.github.NicoNekoDev.SimpleTuples.Triplet;
 import ro.nico.leaderboard.AstralLeaderboardsPlugin;
 import ro.nico.leaderboard.api.Board;
-import ro.nico.leaderboard.settings.PluginSettings;
 import ro.nico.leaderboard.storage.SQLDateType;
+import ro.nico.leaderboard.storage.settings.StorageSettings;
 
 import java.sql.SQLException;
 import java.util.LinkedList;
@@ -21,7 +21,7 @@ public abstract class Storage {
         this.plugin = plugin;
     }
 
-    public abstract void load(PluginSettings.StorageSettings settings) throws SQLException;
+    public abstract void load(StorageSettings settings) throws SQLException;
 
     public abstract void unload() throws SQLException;
 

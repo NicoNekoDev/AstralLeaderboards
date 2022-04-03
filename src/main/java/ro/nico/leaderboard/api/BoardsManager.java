@@ -2,10 +2,11 @@ package ro.nico.leaderboard.api;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
 import ro.nico.leaderboard.AstralLeaderboardsPlugin;
 import ro.nico.leaderboard.settings.BoardSettings;
-import ro.nico.leaderboard.util.GsonUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,7 +23,6 @@ public class BoardsManager {
     private final File boardsDirectory;
     public static final Pattern BOARD_ID_PATTERN = Pattern.compile("[a-zA-Z0-9-]+");
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     public BoardsManager(@NotNull AstralLeaderboardsPlugin plugin) {
         this.plugin = plugin;
         this.boardsDirectory = new File(plugin.getDataFolder(), "boards");
@@ -33,14 +33,10 @@ public class BoardsManager {
         FileVisitor<Path> fileVisitor = new SimpleFileVisitor<>() {
             @Override
             public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) {
-                if (path.toString().endsWith(".json")) {
-                    BoardSettings settings;
-                    try {
-                        settings = GsonUtil.load(BoardSettings.class, path.toFile());
-                    } catch (IOException e) {
-                        plugin.getLogger().warning("Failed to load board settings from " + path);
-                        return FileVisitResult.CONTINUE;
-                    }
+                if (path.toString().endsWith(".yml")) {
+                    YamlConfiguration config = YamlConfiguration.loadConfiguration(path.toFile());
+                    BoardSettings settings = new BoardSettings();
+                    settings.load(config);
                     String id = settings.getId();
                     if (!BOARD_ID_PATTERN.matcher(id).matches()) {
                         plugin.getLogger().warning("Invalid board id: " + id);
@@ -48,6 +44,12 @@ public class BoardsManager {
                     }
                     if (boards.containsKey(id)) {
                         plugin.getLogger().warning("Duplicate board id: " + id);
+                        return FileVisitResult.CONTINUE;
+                    }
+                    try {
+                        config.save(path.toFile());
+                    } catch (IOException e) {
+                        plugin.getLogger().warning("Missing board config: " + id);
                         return FileVisitResult.CONTINUE;
                     }
                     Board board = new Board(plugin, id, path.toFile(), settings);
@@ -70,16 +72,17 @@ public class BoardsManager {
         this.boards.clear();
     }
 
-    public Board createBoard(@NotNull String id, @NotNull String sorter) throws IllegalArgumentException, IOException {
+    public Board createBoard(@NotNull String id, @NotNull String sorter) throws IllegalArgumentException, IOException, InvalidConfigurationException {
         if (this.hasBoard(id))
             throw new IllegalArgumentException("Board with id " + id + " already exists");
         if (!BOARD_ID_PATTERN.matcher(id).matches())
             throw new IllegalArgumentException("Invalid board id pattern: " + id);
+        File boardFile = new File(this.boardsDirectory, id + ".yml");
         BoardSettings boardSettings = new BoardSettings(id, sorter);
-        File boardFile = new File(this.boardsDirectory, id + ".json");
-        boardSettings = GsonUtil.fromOrToJson(boardSettings, BoardSettings.class, boardFile); // also check if a config file with the same board id exists, and load it
         Board board = new Board(this.plugin, id, boardFile, boardSettings);
+        board.loadSettings();
         this.boards.put(id, board);
+        board.saveSettings();
         return board;
     }
 

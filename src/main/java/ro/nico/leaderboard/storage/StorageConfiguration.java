@@ -5,10 +5,10 @@ import io.github.NicoNekoDev.SimpleTuples.Quartet;
 import io.github.NicoNekoDev.SimpleTuples.Triplet;
 import ro.nico.leaderboard.AstralLeaderboardsPlugin;
 import ro.nico.leaderboard.api.Board;
+import ro.nico.leaderboard.storage.settings.StorageSettings;
 import ro.nico.leaderboard.storage.types.MySQLStorage;
 import ro.nico.leaderboard.storage.types.SQLiteStorage;
 import ro.nico.leaderboard.storage.types.Storage;
-import ro.nico.leaderboard.settings.PluginSettings;
 
 import java.sql.SQLException;
 import java.util.*;
@@ -20,7 +20,7 @@ public class StorageConfiguration extends Storage {
         super(plugin);
     }
 
-    public void load(PluginSettings.StorageSettings settings) throws SQLException {
+    public void load(StorageSettings settings) throws SQLException {
         if (storage != null)
             storage.unload();
         if (settings.isUsingMySQL())

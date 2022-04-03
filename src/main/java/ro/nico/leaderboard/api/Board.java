@@ -1,13 +1,16 @@
 package ro.nico.leaderboard.api;
 
+import com.google.common.collect.ImmutableMap;
 import lombok.Getter;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 import ro.nico.leaderboard.AstralLeaderboardsPlugin;
-import ro.nico.leaderboard.storage.cache.BoardData;
 import ro.nico.leaderboard.settings.BoardSettings;
-import ro.nico.leaderboard.util.GsonUtil;
+import ro.nico.leaderboard.storage.cache.BoardData;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,7 +22,7 @@ public class Board {
     @Getter private final AstralLeaderboardsPlugin plugin;
     @Getter private final BoardData boardData;
     @Getter private final String id;
-    @Getter private BoardSettings boardSettings;
+    @Getter private final BoardSettings boardSettings;
     private BukkitTask updateTask;
     private BukkitTask asyncHeartbeatTask;
     private BukkitTask syncHeartbeatTask;
@@ -33,57 +36,75 @@ public class Board {
     }
 
     public Board addTracker(@NotNull String trackerId, @NotNull String trackerPlaceholder) {
-        this.getTrackers().put(trackerId, trackerPlaceholder);
+        this.boardSettings.getTrackers().set(trackerId, trackerPlaceholder);
         return this;
     }
 
     public Board removeTracker(@NotNull String trackerId) {
-        this.getTrackers().remove(trackerId);
+        this.boardSettings.getTrackers().set(trackerId, null);
         return this;
     }
 
     public Board addTrackers(@NotNull Map<String, String> trackers) {
-        this.getTrackers().putAll(trackers);
+        for (Map.Entry<String, String> entry : trackers.entrySet()) {
+            this.boardSettings.getTrackers().set(entry.getKey(), entry.getValue());
+        }
         return this;
     }
 
     public boolean hasPlayerExempt(@NotNull String name) {
-        return this.boardSettings.getExemptPlayersSettings().getExemptPlayersNames().contains(name);
+        return this.boardSettings.getExemptPlayersNames().contains(name);
     }
 
     public boolean hasPlayerExempt(@NotNull UUID playerUUID) {
-        return this.boardSettings.getExemptPlayersSettings().getExemptPlayersUUIDs().contains(playerUUID.toString());
+        return this.boardSettings.getExemptPlayersUUIDs().contains(playerUUID.toString());
     }
 
     public Board addExemptPlayer(@NotNull String playerName) {
-        this.boardSettings.getExemptPlayersSettings().getExemptPlayersNames().add(playerName);
+        this.boardSettings.getExemptPlayersNames().add(playerName);
         return this;
     }
 
     public Board addExemptPlayer(@NotNull UUID playerUUID) {
-        this.boardSettings.getExemptPlayersSettings().getExemptPlayersUUIDs().add(playerUUID.toString());
+        this.boardSettings.getExemptPlayersUUIDs().add(playerUUID.toString());
         return this;
     }
 
     @NotNull
     public Map<String, String> getTrackers() {
-        return this.boardSettings.getTrackers();
+        ConfigurationSection trackers = this.boardSettings.getTrackers();
+        ImmutableMap.Builder<String, String> immutable = ImmutableMap.builder();
+        for (String key : trackers.getKeys(false)) {
+            if (trackers.isString(key)) {
+                immutable.put(key, trackers.getString(key, "null"));
+            }
+        }
+        return immutable.build();
     }
 
     protected void loadSettings() {
         try {
-            this.boardSettings = GsonUtil.load(BoardSettings.class, this.boardFile);
-        } catch (IOException e) {
+            YamlConfiguration config = new YamlConfiguration();
+            if (this.boardFile.exists())
+                config.load(this.boardFile);
+            this.boardSettings.load(config);
+        } catch (IOException | InvalidConfigurationException e) {
             this.plugin.getLogger().severe("Failed to load board settings for board " + this.id + "!");
         }
     }
 
     protected void saveSettings() {
         try {
-            GsonUtil.save(this.boardSettings, this.boardFile);
+            YamlConfiguration config = new YamlConfiguration();
+            this.boardSettings.load(config);
+            config.save(this.boardFile);
         } catch (IOException e) {
             this.plugin.getLogger().severe("Failed to save board settings for board " + this.id + "!");
         }
+    }
+
+    protected void deleteSettings() {
+        this.boardFile.delete();
     }
 
     protected void enable() {
@@ -96,9 +117,5 @@ public class Board {
         if (this.asyncHeartbeatTask != null) this.asyncHeartbeatTask.cancel();
         if (this.syncHeartbeatTask != null) this.syncHeartbeatTask.cancel();
         if (this.updateTask != null) this.updateTask.cancel();
-    }
-
-    protected void deleteSettings() {
-        this.boardFile.delete();
     }
 }

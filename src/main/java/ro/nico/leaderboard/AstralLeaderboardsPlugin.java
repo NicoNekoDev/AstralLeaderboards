@@ -3,6 +3,8 @@ package ro.nico.leaderboard;
 import lombok.Getter;
 import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import ro.nico.leaderboard.api.BoardsManager;
@@ -10,16 +12,16 @@ import ro.nico.leaderboard.api.PlaceholderAPIHook;
 import ro.nico.leaderboard.listener.PlayerEvents;
 import ro.nico.leaderboard.settings.PluginSettings;
 import ro.nico.leaderboard.storage.StorageConfiguration;
-import ro.nico.leaderboard.util.GsonUtil;
 
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Objects;
 
 public class AstralLeaderboardsPlugin extends JavaPlugin {
-    private final File settingsFile = new File(this.getDataFolder(), "settings.json");
-    @Getter private PluginSettings settings = new PluginSettings();
+    private final File settingsFile = new File(getDataFolder(), "settings.yml");
+    @Getter private PluginSettings settings;
     @Getter private final StorageConfiguration storage = new StorageConfiguration(this);
     @Getter private final BoardsManager boardsManager = new BoardsManager(this);
     @Getter private Permission vaultPermissions;
@@ -63,9 +65,23 @@ public class AstralLeaderboardsPlugin extends JavaPlugin {
     }
 
     public void reloadPlugin() {
-        this.settingsFile.getParentFile().mkdirs();
         try {
-            this.settings = GsonUtil.fromOrToJson(this.settings, PluginSettings.class, this.settingsFile);
+            FileConfiguration config = YamlConfiguration.loadConfiguration(this.settingsFile);
+            config.options().setHeader(
+                    List.of(
+                            "",
+                            "               _             _ _                    _           _                         _     ",
+                            "     /\\       | |           | | |                  | |         | |                       | |    ",
+                            "    /  \\   ___| |_ _ __ __ _| | |     ___  __ _  __| | ___ _ __| |__   ___   __ _ _ __ __| |___ ",
+                            "   / /\\ \\ / __| __| '__/ _` | | |    / _ \\/ _` |/ _` |/ _ \\ '__| '_ \\ / _ \\ / _` | '__/ _` / __|",
+                            "  / ____ \\\\__ \\ |_| | | (_| | | |___|  __/ (_| | (_| |  __/ |  | |_) | (_) | (_| | | | (_| \\__ \\",
+                            " /_/    \\_\\___/\\__|_|  \\__,_|_|______\\___|\\__,_|\\__,_|\\___|_|  |_.__/ \\___/ \\__,_|_|  \\__,_|___/",
+                            ""
+                    )
+            );
+            this.settings = new PluginSettings();
+            this.settings.load(config);
+            config.save(settingsFile);
         } catch (IOException e) {
             this.getLogger().severe("Failed to load settings!");
         }
