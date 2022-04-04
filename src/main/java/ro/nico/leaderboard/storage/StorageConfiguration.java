@@ -43,18 +43,12 @@ public class StorageConfiguration extends Storage {
     }
 
     @Override
-    public LinkedList<Quartet<Pair<String, UUID>, String, Map<String, String>, Integer>> getPlayersDataForBoard(Board board, SQLDateType type, Set<String> exemptedPlayers) throws SQLException {
+    public Pair<Map<Pair<String, UUID>, Triplet<String, Map<String, String>, Integer>>, LinkedList<Quartet<Pair<String, UUID>, String, Map<String, String>, Integer>>> getDataForBoard(Set<Pair<String, UUID>> players, Board board, SQLDateType dateType) throws SQLException {
         if (this.storage != null)
-            return this.storage.getPlayersDataForBoard(board, type, exemptedPlayers);
-        return new LinkedList<>();
+            return this.storage.getDataForBoard(players, board, dateType);
+        return Pair.of(new HashMap<>(), new LinkedList<>());
     }
 
-    @Override
-    public Map<Pair<String, UUID>, Triplet<String, Map<String, String>, Integer>> getOnlinePlayersDataForBoard(Set<Pair<String, UUID>> players, Board board, SQLDateType dateType) throws SQLException {
-        if (this.storage != null)
-            return this.storage.getOnlinePlayersDataForBoard(players, board, dateType);
-        return new HashMap<>();
-    }
 
     @Override
     public Triplet<String, Map<String, String>, Integer> getOnlinePlayerDataImmediately(Pair<String, UUID> player, Board board, SQLDateType dateType) throws SQLException {

@@ -77,43 +77,7 @@ public class MySQLStorage extends Storage {
     }
 
     @Override
-    public LinkedList<Quartet<Pair<String, UUID>, String, Map<String, String>, Integer>> getPlayersDataForBoard(Board board, SQLDateType dateType, Set<String> exemptedPlayers) throws SQLException {
-        LinkedList<Quartet<Pair<String, UUID>, String, Map<String, String>, Integer>> result = new LinkedList<>();
-        String query = board.getBoardSettings().isReversed() ?
-                switch (dateType) {
-                    case ALLTIME -> "SELECT player_name, player_uuid, sorter, trackers FROM ? WHERE `board_id` = ? ORDER BY `sorter` DESC LIMIT ?;";
-                    case HOURLY -> "SELECT player_name, player_uuid, sorter, trackers FROM ? WHERE `board_id` = ? AND `date` BETWEEN NOW() AND DATE_SUB(NOW(), INTERVAL 1 HOUR) ORDER BY sorter DESC LIMIT ?;";
-                    case DAILY -> "SELECT player_name, player_uuid, sorter, trackers FROM ? WHERE `board_id` = ? AND `date` BETWEEN NOW() AND DATE_SUB(NOW(), INTERVAL 1 DAY) ORDER BY sorter DESC LIMIT ?;";
-                    case WEEKLY -> "SELECT player_name, player_uuid, sorter, trackers FROM ? WHERE `board_id` = ? AND `date` BETWEEN NOW() AND DATE_SUB(NOW(), INTERVAL 1 WEEK) ORDER BY sorter DESC LIMIT ?;";
-                    case MONTHLY -> "SELECT player_name, player_uuid, sorter, trackers FROM ? WHERE `board_id` = ? AND `date` BETWEEN NOW() AND DATE_SUB(NOW(), INTERVAL 1 MONTH) ORDER BY sorter DESC LIMIT ?;";
-                    case YEARLY -> "SELECT player_name, player_uuid, sorter, trackers FROM ? WHERE `board_id` = ? AND `date` BETWEEN NOW() AND DATE_SUB(NOW(), INTERVAL 1 YEAR) ORDER BY sorter DESC LIMIT ?;";
-                } :
-                switch (dateType) {
-                    case ALLTIME -> "SELECT player_name, player_uuid, sorter, trackers FROM ? WHERE `board_id` = ? ORDER BY `sorter` DESC LIMIT ?;";
-                    case HOURLY -> "SELECT player_name, player_uuid, sorter, trackers FROM ? WHERE `board_id` = ? AND `date` BETWEEN NOW() AND DATE_SUB(NOW(), INTERVAL 1 HOUR) ORDER BY sorter ASC LIMIT ?;";
-                    case DAILY -> "SELECT player_name, player_uuid, sorter, trackers FROM ? WHERE `board_id` = ? AND `date` BETWEEN NOW() AND DATE_SUB(NOW(), INTERVAL 1 DAY) ORDER BY sorter ASC LIMIT ?;";
-                    case WEEKLY -> "SELECT player_name, player_uuid, sorter, trackers FROM ? WHERE `board_id` = ? AND `date` BETWEEN NOW() AND DATE_SUB(NOW(), INTERVAL 1 WEEK) ORDER BY sorter ASC LIMIT ?;";
-                    case MONTHLY -> "SELECT player_name, player_uuid, sorter, trackers FROM ? WHERE `board_id` = ? AND `date` BETWEEN NOW() AND DATE_SUB(NOW(), INTERVAL 1 MONTH) ORDER BY sorter ASC LIMIT ?;";
-                    case YEARLY -> "SELECT player_name, player_uuid, sorter, trackers FROM ? WHERE `board_id` = ? AND `date` BETWEEN NOW() AND DATE_SUB(NOW(), INTERVAL 1 YEAR) ORDER BY sorter ASC LIMIT ?;";
-                };
-        try (PreparedStatement statement = this.connection.prepareStatement(query)) {
-            statement.setString(1, this.table_prefix + "leaderboard");
-            statement.setString(2, board.getId());
-            statement.setInt(3, board.getBoardSettings().getRowSize());
-            try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
-                    Pair<String, UUID> player = new Pair<>(resultSet.getString("player_name"), UUID.fromString(resultSet.getString("player_uuid")));
-                    String sorter = resultSet.getString("sorter");
-                    Map<String, String> trackers = GsonUtil.convertJsonToMap(GsonUtil.fromBase64(resultSet.getString("trackers"))); // it converts the base64 string to a map using gson
-                    result.add(Quartet.of(player, sorter, trackers, -1)); // todo: rank
-                }
-            }
-        }
-        return result;
-    }
-
-    @Override
-    public Map<Pair<String, UUID>, Triplet<String, Map<String, String>, Integer>> getOnlinePlayersDataForBoard(Set<Pair<String, UUID>> players, Board board, SQLDateType dateType) throws SQLException {
+    public Pair<Map<Pair<String, UUID>, Triplet<String, Map<String, String>, Integer>>, LinkedList<Quartet<Pair<String, UUID>, String, Map<String, String>, Integer>>> getDataForBoard(Set<Pair<String, UUID>> players, Board board, SQLDateType dateType) throws SQLException {
         return null;
     }
 

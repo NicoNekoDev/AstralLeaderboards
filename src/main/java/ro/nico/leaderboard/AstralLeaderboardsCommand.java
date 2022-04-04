@@ -52,12 +52,13 @@ public class AstralLeaderboardsCommand implements TabExecutor {
                 }
                 case "update" -> {
                     if (plugin.getVaultPermissions().has(sender, "astralleaderboards.command.update")) {
-                        if (args.length == 2) {
+                        if (args.length == 2 || args.length == 3) {
                             Board board = plugin.getBoardsManager().getBoard(args[1]);
                             if (board == null) {
                                 sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getBoardNotFoundMessage().replace("%board%", args[1])));
                             } else {
-                                board.getBoardData().update();
+                                boolean forceOffline = args.length == 3 && "--force-offline".equalsIgnoreCase(args[2]);
+                                board.getBoardData().update(forceOffline);
                                 sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getBoardUpdatedMessage().replace("%board%", args[1])));
                             }
                         } else
@@ -208,6 +209,8 @@ public class AstralLeaderboardsCommand implements TabExecutor {
                 }
             } else if ("data".equalsIgnoreCase(args[0])) {
                 return StringUtil.copyPartialMatches(args[2], Arrays.stream(SQLDateType.values()).map(type -> type.name().toLowerCase()).toList(), new ArrayList<>());
+            } else if ("update".equalsIgnoreCase(args[0])) {
+                return StringUtil.copyPartialMatches(args[2], List.of("--force-offline"), new ArrayList<>());
             }
         }
         return List.of();

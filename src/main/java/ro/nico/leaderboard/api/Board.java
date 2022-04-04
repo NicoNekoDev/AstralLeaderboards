@@ -98,14 +98,22 @@ public class Board {
     }
 
     protected void enable() {
-        this.asyncHeartbeatTask = Bukkit.getScheduler().runTaskTimerAsynchronously(this.plugin, this.boardData::asyncHeartbeat, this.boardSettings.getHeartbeatInterval(), this.boardSettings.getHeartbeatInterval());
-        this.syncHeartbeatTask = Bukkit.getScheduler().runTaskTimer(this.plugin, this.boardData::syncHeartbeat, this.boardSettings.getHeartbeatInterval(), this.boardSettings.getHeartbeatInterval());
-        this.updateTask = Bukkit.getScheduler().runTaskTimer(this.plugin, this.boardData::update, 20L * this.boardSettings.getUpdateInterval(), 20L * this.boardSettings.getUpdateInterval());
+        this.boardData.load();
+        if (this.updateTask == null || updateTask.isCancelled())
+            this.updateTask = Bukkit.getScheduler()
+                    .runTaskTimer(this.plugin, () -> this.boardData.update(false), 1L, 20L * this.boardSettings.getUpdateInterval());
+        if (this.asyncHeartbeatTask == null || asyncHeartbeatTask.isCancelled())
+            this.asyncHeartbeatTask = Bukkit.getScheduler()
+                    .runTaskTimerAsynchronously(this.plugin, this.boardData::asyncHeartbeat, 20L, this.boardSettings.getHeartbeatInterval());
+        if (this.syncHeartbeatTask == null || syncHeartbeatTask.isCancelled())
+            this.syncHeartbeatTask = Bukkit.getScheduler()
+                    .runTaskTimer(this.plugin, this.boardData::syncHeartbeat, 40L, this.boardSettings.getHeartbeatInterval());
     }
 
     protected void disable() {
         if (this.asyncHeartbeatTask != null) this.asyncHeartbeatTask.cancel();
         if (this.syncHeartbeatTask != null) this.syncHeartbeatTask.cancel();
         if (this.updateTask != null) this.updateTask.cancel();
+        this.boardData.unload();
     }
 }

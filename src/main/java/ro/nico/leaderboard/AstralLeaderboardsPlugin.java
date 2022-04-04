@@ -9,7 +9,6 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import ro.nico.leaderboard.api.BoardsManager;
 import ro.nico.leaderboard.api.PlaceholderAPIHook;
-import ro.nico.leaderboard.listener.PlayerEvents;
 import ro.nico.leaderboard.settings.PluginSettings;
 import ro.nico.leaderboard.storage.StorageConfiguration;
 
@@ -32,7 +31,6 @@ public class AstralLeaderboardsPlugin extends JavaPlugin {
         this.loadDependencies();
         this.reloadPlugin();
         Objects.requireNonNull(this.getCommand("astrallb"), "Failed to find main command!").setExecutor(new AstralLeaderboardsCommand(this));
-        Bukkit.getPluginManager().registerEvents(new PlayerEvents(this), this);
     }
 
     @Override
@@ -91,7 +89,7 @@ public class AstralLeaderboardsPlugin extends JavaPlugin {
             this.boardsManager.unloadAllBoards();
             this.boardsManager.loadAllBoards();
         } catch (SQLException e) {
-            this.getLogger().severe("Could not load storage!");
+            this.getLogger().severe("Could not load storage! " + e.getMessage());
         }
     }
 }

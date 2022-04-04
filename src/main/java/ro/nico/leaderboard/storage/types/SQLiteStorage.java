@@ -3,6 +3,7 @@ package ro.nico.leaderboard.storage.types;
 import io.github.NicoNekoDev.SimpleTuples.Pair;
 import io.github.NicoNekoDev.SimpleTuples.Quartet;
 import io.github.NicoNekoDev.SimpleTuples.Triplet;
+import org.bukkit.Bukkit;
 import ro.nico.leaderboard.AstralLeaderboardsPlugin;
 import ro.nico.leaderboard.api.Board;
 import ro.nico.leaderboard.storage.SQLDateType;
@@ -66,63 +67,12 @@ public class SQLiteStorage extends Storage {
     }
 
     @Override
-    public LinkedList<Quartet<Pair<String, UUID>, String, Map<String, String>, Integer>> getPlayersDataForBoard(Board board, SQLDateType dateType, Set<String> exemptedPlayers) throws SQLException {
-        LinkedList<Quartet<Pair<String, UUID>, String, Map<String, String>, Integer>> result = new LinkedList<>();
-        String query = "SELECT leaderboard.player_name, leaderboard.player_uuid, leaderboard.sorter, leaderboard.trackers, leaderboard.date FROM `leaderboard` AS leaderboard" +
-                " LEFT JOIN `exempted` AS exempted ON leaderboard.player_name = exempted.player_name" +
-                " WHERE exempted.player_name IS NULL AND leaderboard.board_id = ? " +
-                switch (dateType) {
-                    case ALLTIME -> "";
-                    case HOURLY -> " AND leaderboard.date BETWEEN DATE('now', '-1 hour') AND DATE('now')";
-                    case DAILY -> " AND leaderboard.date BETWEEN DATE('now', '-1 day') AND DATE('now')";
-                    case WEEKLY -> " AND leaderboard.date BETWEEN DATE('now', '-1 week') AND DATE('now')";
-                    case MONTHLY -> " AND leaderboard.date BETWEEN DATE('now', '-1 month') AND DATE('now')";
-                    case YEARLY -> " AND leaderboard.date BETWEEN DATE('now', '-1 year') AND DATE('now')";
-                } + " ORDER BY leaderboard.sorter " + (board.getBoardSettings().isReversed() ? "DESC" : "ASC") + " LIMIT ?;";
-        try (PreparedStatement tableEdit = this.connection.prepareStatement("""
-                CREATE TABLE IF NOT EXISTS `exempted` (
-                board_id VARCHAR(255) NOT NULL,
-                player_name VARCHAR(255) NOT NULL,
-                PRIMARY KEY (board_id, player_name)
-                );
-                """)) {
-            tableEdit.execute();
-            try (PreparedStatement insert = this.connection.prepareStatement("""
-                    INSERT INTO `exempted` (board_id, player_name)
-                    VALUES (?, ?) ON CONFLICT(board_id, player_name) DO NOTHING;
-                    """)) {
-                for (String player : exemptedPlayers) {
-                    insert.setString(1, board.getId());
-                    insert.setString(2, player);
-                    insert.addBatch();
-                }
-                insert.executeBatch();
-                try (PreparedStatement statement = this.connection.prepareStatement(query)) {
-                    statement.setString(1, board.getId());
-                    statement.setInt(2, board.getBoardSettings().getRowSize());
-                    try (ResultSet resultSet = statement.executeQuery()) {
-                        int rank = 0;
-                        while (resultSet.next()) {
-                            Pair<String, UUID> player = new Pair<>(resultSet.getString("player_name"), UUID.fromString(resultSet.getString("player_uuid")));
-                            String sorter = resultSet.getString("sorter");
-                            Map<String, String> trackers = GsonUtil.convertJsonToMap(GsonUtil.fromBase64(resultSet.getString("trackers"))); // it converts the base64 string to a map using gson
-                            result.add(Quartet.of(player, sorter, trackers, ++rank));
-                        }
-                    }
-                }
-            } finally {
-                try (PreparedStatement statement = this.connection.prepareStatement("DROP TABLE IF EXISTS `exempted`;")) {
-                    statement.execute();
-                }
-            }
-        }
-        return result;
-    }
-
-    @Override
-    public Map<Pair<String, UUID>, Triplet<String, Map<String, String>, Integer>> getOnlinePlayersDataForBoard(Set<Pair<String, UUID>> players, Board board, SQLDateType dateType) throws SQLException {
-        Map<Pair<String, UUID>, Triplet<String, Map<String, String>, Integer>> result = new HashMap<>();
-        String query = "SELECT sorter, trackers, RANK() OVER (ORDER BY sorter " + (board.getBoardSettings().isReversed() ? "DESC" : "ASC") + ") AS rank FROM `leaderboard` WHERE board_id = ? AND player_name = ? AND player_uuid = ?" +
+    public Pair<Map<Pair<String, UUID>, Triplet<String, Map<String, String>, Integer>>,
+            LinkedList<Quartet<Pair<String, UUID>, String, Map<String, String>, Integer>>> getDataForBoard
+            (Set<Pair<String, UUID>> players, Board board, SQLDateType dateType) throws SQLException {
+        Map<Pair<String, UUID>, Triplet<String, Map<String, String>, Integer>> onlinePlayersResult = new HashMap<>();
+        LinkedList<Quartet<Pair<String, UUID>, String, Map<String, String>, Integer>> topPlayersResult = new LinkedList<>();
+        String query = "SELECT player_name, player_uuid, sorter, trackers FROM `leaderboard` WHERE board_id = ?" +
                 switch (dateType) {
                     case ALLTIME -> "";
                     case HOURLY -> " AND date BETWEEN DATE('now', '-1 hour') AND DATE('now')";
@@ -130,28 +80,37 @@ public class SQLiteStorage extends Storage {
                     case WEEKLY -> " AND date BETWEEN DATE('now', '-1 week') AND DATE('now')";
                     case MONTHLY -> " AND date BETWEEN DATE('now', '-1 month') AND DATE('now')";
                     case YEARLY -> " AND date BETWEEN DATE('now', '-1 year') AND DATE('now')";
-                } + ";";
-
+                } + " ORDER BY sorter " + (board.getBoardSettings().isReversed() ? "DESC" : "ASC") + ";";
         try (PreparedStatement statement = this.connection.prepareStatement(query)) {
-            for (Pair<String, UUID> player : players) {
-                statement.setString(1, board.getId());
-                statement.setString(2, player.getFirstValue());
-                statement.setString(3, player.getSecondValue().toString());
-                try (ResultSet resultSet = statement.executeQuery()) {
-                    while (resultSet.next()) {
-                        String sorter = resultSet.getString("sorter");
-                        Map<String, String> trackers = GsonUtil.convertJsonToMap(GsonUtil.fromBase64(resultSet.getString("trackers"))); // it converts the base64 string to a map using gson
-                        int rank = resultSet.getInt("rank");
-                        result.put(player, Triplet.of(sorter, trackers, rank));
+            statement.setString(1, board.getId());
+            int rank = 0;
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    String name = resultSet.getString("player_name");
+                    UUID uuid = UUID.fromString(resultSet.getString("player_uuid"));
+                    Pair<String, UUID> player = Pair.of(name, uuid);
+                    if (board.hasPlayerExempt(name))
+                        continue;
+                    if (this.plugin.getVaultPermissions().playerHas(Bukkit.getWorlds().get(0).getName(), Bukkit.getOfflinePlayer(uuid), "astralleaderboards.exempt." + board.getId()))
+                        continue;
+                    rank++; // increment the rank
+                    String sorter = resultSet.getString("sorter");
+                    Map<String, String> trackers = GsonUtil.convertJsonToMap(GsonUtil.fromBase64(resultSet.getString("trackers"))); // it converts the base64 string to a map using gson
+                    if (rank <= board.getBoardSettings().getRowSize()) {
+                        topPlayersResult.add(Quartet.of(player, sorter, trackers, rank));
+                    }
+                    if (players.contains(player)) {
+                        onlinePlayersResult.put(player, Triplet.of(sorter, trackers, rank));
                     }
                 }
             }
         }
-        return result;
+        return Pair.of(onlinePlayersResult, topPlayersResult);
     }
 
     @Override
-    public Triplet<String, Map<String, String>, Integer> getOnlinePlayerDataImmediately(Pair<String, UUID> player, Board board, SQLDateType dateType) throws SQLException {
+    public Triplet<String, Map<String, String>, Integer> getOnlinePlayerDataImmediately
+            (Pair<String, UUID> player, Board board, SQLDateType dateType) throws SQLException {
         String query = board.getBoardSettings().isReversed() ?
                 switch (dateType) {
                     case ALLTIME -> "SELECT sorter, trackers, RANK() OVER (ORDER BY sorter DESC) AS rank FROM `leaderboard` WHERE board_id = ? AND player_name = ? AND player_uuid = ?;";

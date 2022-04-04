@@ -30,40 +30,40 @@ public class PlaceholderAPIHook extends PlaceholderExpansion {
         return "1.0";
     }
 
-    // %astrallb_<board>_<position>_<tracker>_<date>%
+    // %astrallb_<board>_<tracker>_<position>_<date>%
+    // example: %astrallb_money_display_1_alltime%
     @Override
     public @Nullable String onRequest(OfflinePlayer player, @NotNull String params) {
         String defaultValue = plugin.getSettings().getDefaultPlaceholder();
         String[] args = params.split("_");
         if (args.length == 4) {
-            String boardData = args[0];
+            String board = args[0];
+            String tracker = args[1];
             int position;
             try {
-                position = Integer.parseInt(args[1]);
-                position--;
-                if (position < 0)
+                position = Integer.parseInt(args[2]);
+                if (position < 1)
                     return defaultValue;
             } catch (NumberFormatException e) {
                 return defaultValue;
             }
-            String tracker = args[2];
             SQLDateType time;
             try {
                 time = SQLDateType.valueOf(args[3].toUpperCase());
             } catch (IllegalArgumentException e) {
                 return defaultValue;
             }
-            Board board = plugin.getBoardsManager().getBoard(boardData);
-            if (board == null)
+            Board boardData = plugin.getBoardsManager().getBoard(board);
+            if (boardData == null)
                 return defaultValue;
             try {
-                PlayerData data = board.getBoardData().getData(position, time);
+                PlayerData data = boardData.getBoardData().getData(--position, time);
                 if (data == null)
-                    return board.getBoardSettings().getDefaultTrackerPlaceholder();
+                    return boardData.getBoardSettings().getDefaultTrackerPlaceholder();
                 String trackerData = data.getTrackers().get(tracker);
-                return trackerData == null ? board.getBoardSettings().getDefaultTrackerPlaceholder() : trackerData;
+                return trackerData == null ? boardData.getBoardSettings().getDefaultTrackerPlaceholder() : trackerData;
             } catch (IndexOutOfBoundsException ex) {
-                return board.getBoardSettings().getDefaultTrackerPlaceholder();
+                return boardData.getBoardSettings().getDefaultTrackerPlaceholder();
             }
         }
         return defaultValue;

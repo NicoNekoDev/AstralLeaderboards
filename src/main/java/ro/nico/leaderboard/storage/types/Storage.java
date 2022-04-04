@@ -24,9 +24,9 @@ public abstract class Storage {
 
     public abstract void putPlayerDataForBoard(Board board, Map<Pair<String, UUID>, Pair<String, Map<String, String>>> sortedData) throws SQLException;
 
-    public abstract LinkedList<Quartet<Pair<String, UUID>, String, Map<String, String>, Integer>> getPlayersDataForBoard(Board board, SQLDateType dateType, Set<String> exemptedPlayers) throws SQLException;
-
-    public abstract Map<Pair<String, UUID>, Triplet<String, Map<String, String>, Integer>> getOnlinePlayersDataForBoard(Set<Pair<String, UUID>> players, Board board, SQLDateType dateType) throws SQLException;
+    public abstract Pair<Map<Pair<String, UUID>, Triplet<String, Map<String, String>, Integer>>,
+            LinkedList<Quartet<Pair<String, UUID>, String, Map<String, String>, Integer>>> getDataForBoard
+            (Set<Pair<String, UUID>> players, Board board, SQLDateType dateType) throws SQLException;
 
     public abstract Triplet<String, Map<String, String>, Integer> getOnlinePlayerDataImmediately(Pair<String, UUID> player, Board board, SQLDateType dateType) throws SQLException;
 }
