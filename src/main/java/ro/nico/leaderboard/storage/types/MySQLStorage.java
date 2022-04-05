@@ -1,17 +1,20 @@
 package ro.nico.leaderboard.storage.types;
 
 import io.github.NicoNekoDev.SimpleTuples.Pair;
-import io.github.NicoNekoDev.SimpleTuples.Quartet;
-import io.github.NicoNekoDev.SimpleTuples.Triplet;
 import ro.nico.leaderboard.AstralLeaderboardsPlugin;
 import ro.nico.leaderboard.api.Board;
+import ro.nico.leaderboard.data.PlayerData;
+import ro.nico.leaderboard.data.PlayerId;
 import ro.nico.leaderboard.storage.SQLDateType;
 import ro.nico.leaderboard.storage.settings.StorageMySQLSettings;
 import ro.nico.leaderboard.storage.settings.StorageSettings;
-import ro.nico.leaderboard.util.GsonUtil;
 
-import java.sql.*;
-import java.util.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 
 public class MySQLStorage extends Storage {
     private Connection connection;
@@ -54,35 +57,13 @@ public class MySQLStorage extends Storage {
     }
 
     @Override
-    public void putPlayerDataForBoard(Board board, Map<Pair<String, UUID>, Pair<String, Map<String, String>>> sortedData) throws SQLException {
-        try (PreparedStatement statement = this.connection.prepareStatement("""
-                INSERT INTO ? (board_id, player_name, player_uuid, sorter, trackers, date)
-                VALUES (?, ?, ?, ?, ?, DATE('now')) ON DUPLICATE KEY UPDATE sorter = ?, trackers = ?, date = NOW();
-                            """)) {
-            for (Map.Entry<Pair<String, UUID>, Pair<String, Map<String, String>>> entry : sortedData.entrySet()) {
-                statement.setString(1, this.table_prefix + "leaderboard");
-                statement.setString(2, board.getId());
-                statement.setString(3, entry.getKey().getFirstValue());
-                statement.setString(4, entry.getKey().getSecondValue().toString());
-                String sorter = entry.getValue().getFirstValue();
-                String trackers = GsonUtil.toBase64(GsonUtil.convertMapToJson(entry.getValue().getSecondValue()));
-                statement.setString(5, sorter);
-                statement.setString(6, trackers);
-                statement.setString(7, sorter);
-                statement.setString(8, trackers);
-                statement.addBatch();
-            }
-            statement.executeBatch();
-        }
+    public void putDataForBoard(Board board, Map<PlayerId, PlayerData> data) throws SQLException {
+
     }
 
     @Override
-    public Pair<Map<Pair<String, UUID>, Triplet<String, Map<String, String>, Integer>>, LinkedList<Quartet<Pair<String, UUID>, String, Map<String, String>, Integer>>> getDataForBoard(Set<Pair<String, UUID>> players, Board board, SQLDateType dateType) throws SQLException {
-        return null;
+    public void getDataForBoard(Pair<ConcurrentMap<Integer, PlayerId>, ConcurrentMap<PlayerId, PlayerData>> pair, Board board, SQLDateType dateType) throws SQLException {
+
     }
 
-    @Override
-    public Triplet<String, Map<String, String>, Integer> getOnlinePlayerDataImmediately(Pair<String, UUID> player, Board board, SQLDateType dateType) throws SQLException {
-        return null;
-    }
 }

@@ -3,7 +3,7 @@ package ro.nico.leaderboard.util;
 import com.google.gson.*;
 
 import java.util.Base64;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class GsonUtil {
@@ -19,7 +19,7 @@ public class GsonUtil {
 
     public static Map<String, String> convertJsonToMap(String json) {
         JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
-        Map<String, String> map = new HashMap<>();
+        Map<String, String> map = new LinkedHashMap<>();
         for (Map.Entry<String, JsonElement> entry : jsonObject.entrySet()) {
             if (entry.getValue().isJsonNull())
                 continue;

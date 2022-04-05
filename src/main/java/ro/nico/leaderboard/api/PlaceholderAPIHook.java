@@ -5,8 +5,8 @@ import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ro.nico.leaderboard.AstralLeaderboardsPlugin;
+import ro.nico.leaderboard.data.PlayerData;
 import ro.nico.leaderboard.storage.SQLDateType;
-import ro.nico.leaderboard.storage.cache.PlayerData;
 
 public class PlaceholderAPIHook extends PlaceholderExpansion {
     private final AstralLeaderboardsPlugin plugin;
@@ -57,7 +57,7 @@ public class PlaceholderAPIHook extends PlaceholderExpansion {
             if (boardData == null)
                 return defaultValue;
             try {
-                PlayerData data = boardData.getBoardData().getData(--position, time);
+                PlayerData data = boardData.getBoardData().getData(position, time);
                 if (data == null)
                     return boardData.getBoardSettings().getDefaultTrackerPlaceholder();
                 String trackerData = data.getTrackers().get(tracker);

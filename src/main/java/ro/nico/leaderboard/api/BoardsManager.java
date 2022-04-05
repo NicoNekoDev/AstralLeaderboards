@@ -53,6 +53,12 @@ public class BoardsManager {
                         return FileVisitResult.CONTINUE;
                     }
                     Board board = new Board(plugin, id, path.toFile(), settings);
+                    try {
+                        board.enable();
+                    } catch (IOException e) {
+                        plugin.getLogger().warning("Failed to enable board: " + id);
+                        return FileVisitResult.CONTINUE;
+                    }
                     BoardsManager.this.boards.put(id, board);
                 }
                 return FileVisitResult.CONTINUE;
@@ -64,7 +70,6 @@ public class BoardsManager {
         } catch (IOException ex) {
             this.plugin.getLogger().warning("Failed to load boards: " + ex.getMessage());
         }
-        this.boards.forEach((name, board) -> board.enable());
     }
 
     public void unloadAllBoards() {

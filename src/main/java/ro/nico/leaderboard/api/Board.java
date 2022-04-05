@@ -22,9 +22,8 @@ public class Board {
     @Getter private final BoardData boardData;
     @Getter private final String id;
     @Getter private final BoardSettings boardSettings;
-    private BukkitTask updateTask;
-    private BukkitTask asyncHeartbeatTask;
-    private BukkitTask syncHeartbeatTask;
+    private BukkitTask asyncUpdateTask;
+    private BukkitTask syncUpdateTask;
 
     public Board(@NotNull AstralLeaderboardsPlugin plugin, @NotNull String id, @NotNull File boardFile, @NotNull BoardSettings boardSettings) {
         this.plugin = plugin;
@@ -97,23 +96,19 @@ public class Board {
         this.boardFile.delete();
     }
 
-    protected void enable() {
+    protected void enable() throws IOException {
         this.boardData.load();
-        if (this.updateTask == null || updateTask.isCancelled())
-            this.updateTask = Bukkit.getScheduler()
-                    .runTaskTimer(this.plugin, () -> this.boardData.update(false), 1L, 20L * this.boardSettings.getUpdateInterval());
-        if (this.asyncHeartbeatTask == null || asyncHeartbeatTask.isCancelled())
-            this.asyncHeartbeatTask = Bukkit.getScheduler()
-                    .runTaskTimerAsynchronously(this.plugin, this.boardData::asyncHeartbeat, 20L, this.boardSettings.getHeartbeatInterval());
-        if (this.syncHeartbeatTask == null || syncHeartbeatTask.isCancelled())
-            this.syncHeartbeatTask = Bukkit.getScheduler()
-                    .runTaskTimer(this.plugin, this.boardData::syncHeartbeat, 40L, this.boardSettings.getHeartbeatInterval());
+        if (this.syncUpdateTask == null || syncUpdateTask.isCancelled())
+            this.syncUpdateTask = Bukkit.getScheduler()
+                    .runTaskTimer(this.plugin, () -> this.boardData.syncUpdate(false), 1L, 20L * this.boardSettings.getSyncUpdateInterval());
+        if (this.asyncUpdateTask == null || asyncUpdateTask.isCancelled())
+            this.asyncUpdateTask = Bukkit.getScheduler()
+                    .runTaskTimerAsynchronously(this.plugin, this.boardData::asyncUpdate, this.boardSettings.getAsyncUpdateInterval(), this.boardSettings.getAsyncUpdateInterval());
     }
 
     protected void disable() {
-        if (this.asyncHeartbeatTask != null) this.asyncHeartbeatTask.cancel();
-        if (this.syncHeartbeatTask != null) this.syncHeartbeatTask.cancel();
-        if (this.updateTask != null) this.updateTask.cancel();
+        if (this.asyncUpdateTask != null) this.asyncUpdateTask.cancel();
+        if (this.syncUpdateTask != null) this.syncUpdateTask.cancel();
         this.boardData.unload();
     }
 }

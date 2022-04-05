@@ -41,10 +41,10 @@ public class BoardSettings implements SettingsSerializer {
                         "Which can be used in the placeholder %astrallb_<board>_<position>_display_<date>%",
                         "where 'display' is the tracker id."
                 )));
-        this.updateInterval = SettingsUtil.getOrSetIntFunction().apply(section, "update-interval", this.updateInterval,
-                Optional.of(List.of("Update interval in seconds.", "Default is 30 seconds.")));
-        this.heartbeatInterval = SettingsUtil.getOrSetIntFunction().apply(section, "heartbeat-interval", this.heartbeatInterval,
-                Optional.of(List.of("Heartbeat interval in ticks.", "It's being used for multi-threading checks.", "Default is 20 ticks.")));
+        this.syncUpdateInterval = SettingsUtil.getOrSetIntFunction().apply(section, "sync-update-interval", this.syncUpdateInterval,
+                Optional.of(List.of("Sync update interval in seconds.", "Default is 30 seconds.")));
+        this.asyncUpdateInterval = SettingsUtil.getOrSetIntFunction().apply(section, "async-update-interval", this.asyncUpdateInterval,
+                Optional.of(List.of("Async update interval in ticks.", "It's being used for multi-threading checks.", "Default is 20 ticks.")));
         this.rowSize = SettingsUtil.getOrSetIntFunction().apply(section, "row-size", this.rowSize,
                 Optional.of(List.of("The 'top' amount of cached values from the database.", "Default is 15.")));
         this.reversed = SettingsUtil.getOrSetBooleanFunction().apply(section, "reversed", this.reversed,
@@ -67,12 +67,12 @@ public class BoardSettings implements SettingsSerializer {
 
     @Getter
     @Setter
-    private int updateInterval = 30;
+    private int syncUpdateInterval = 30;
 
 
     @Getter
     @Setter
-    private int heartbeatInterval = 20;
+    private int asyncUpdateInterval = 20;
 
     @Getter
     @Setter

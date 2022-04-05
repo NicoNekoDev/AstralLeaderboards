@@ -1,7 +1,6 @@
 package ro.nico.leaderboard;
 
 import com.google.common.collect.ImmutableMap;
-import io.github.NicoNekoDev.SimpleTuples.Pair;
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -13,12 +12,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ro.nico.leaderboard.api.Board;
 import ro.nico.leaderboard.api.BoardsManager;
+import ro.nico.leaderboard.data.PlayerData;
+import ro.nico.leaderboard.data.PlayerId;
 import ro.nico.leaderboard.settings.MessageSettings;
 import ro.nico.leaderboard.storage.SQLDateType;
-import ro.nico.leaderboard.storage.cache.PlayerData;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class AstralLeaderboardsCommand implements TabExecutor {
@@ -58,7 +61,7 @@ public class AstralLeaderboardsCommand implements TabExecutor {
                                 sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getBoardNotFoundMessage().replace("%board%", args[1])));
                             } else {
                                 boolean forceOffline = args.length == 3 && "--force-offline".equalsIgnoreCase(args[2]);
-                                board.getBoardData().update(forceOffline);
+                                board.getBoardData().syncUpdate(forceOffline);
                                 sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getBoardUpdatedMessage().replace("%board%", args[1])));
                             }
                         } else
@@ -113,18 +116,18 @@ public class AstralLeaderboardsCommand implements TabExecutor {
                             } else {
                                 try {
                                     SQLDateType dateType = SQLDateType.valueOf(args[2].toUpperCase());
-                                    ImmutableMap<Pair<String, UUID>, PlayerData> data = board.getBoardData().dumpAllData(dateType);
+                                    ImmutableMap<PlayerId, PlayerData> data = board.getBoardData().dumpAllData(dateType);
                                     sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getDataHeaderMessage()
                                             .replace("%board%", board.getId())
                                             .replace("%size%", String.valueOf(board.getBoardSettings().getRowSize()))));
-                                    for (Map.Entry<Pair<String, UUID>, PlayerData> entry : data.entrySet()) {
-                                        Pair<String, UUID> key = entry.getKey();
+                                    for (Map.Entry<PlayerId, PlayerData> entry : data.entrySet()) {
+                                        PlayerId key = entry.getKey();
                                         PlayerData value = entry.getValue();
                                         sender.sendMessage(
                                                 ChatColor.translateAlternateColorCodes('&',
                                                         messageSettings.getDataHeaderEntryMessage()
-                                                                .replace("%name%", key.getFirstValue())
-                                                                .replace("%uuid%", key.getSecondValue().toString())
+                                                                .replace("%name%", key.getName())
+                                                                .replace("%uuid%", key.getUuid().toString())
                                                                 .replace("%sorter%", value.getSorter())
                                                                 .replace("%rank%", String.valueOf(value.getRank()))
                                                                 .replace("%trackers%", this.trackersToString(value.getTrackers()))));

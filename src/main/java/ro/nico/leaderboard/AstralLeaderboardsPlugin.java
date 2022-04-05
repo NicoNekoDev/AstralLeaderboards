@@ -20,6 +20,7 @@ import java.util.Objects;
 
 public class AstralLeaderboardsPlugin extends JavaPlugin {
     private final File settingsFile = new File(getDataFolder(), "settings.yml");
+    @Getter private final File cacheDir = new File(getDataFolder(), "cache");
     @Getter private PluginSettings settings;
     @Getter private final StorageConfiguration storage = new StorageConfiguration(this);
     @Getter private final BoardsManager boardsManager = new BoardsManager(this);
@@ -63,6 +64,7 @@ public class AstralLeaderboardsPlugin extends JavaPlugin {
     }
 
     public void reloadPlugin() {
+        this.cacheDir.mkdirs();
         try {
             FileConfiguration config = YamlConfiguration.loadConfiguration(this.settingsFile);
             config.options().setHeader(
