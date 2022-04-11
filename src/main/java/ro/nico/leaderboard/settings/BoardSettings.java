@@ -29,11 +29,11 @@ public class BoardSettings implements SettingsSerializer {
 
     @Override
     public void load(ConfigurationSection section) {
-        this.id = SettingsUtil.getOrSetStringFunction().apply(section, "board-id", this.id,
+        this.id = SettingsUtil.getOrSetStringFunction(section, "board-id", this.id,
                 Optional.of(List.of("Board id, must be unique")));
-        this.sorter = SettingsUtil.getOrSetStringFunction().apply(section, "sorter", this.sorter,
+        this.sorter = SettingsUtil.getOrSetStringFunction(section, "sorter", this.sorter,
                 Optional.of(List.of("Sorter of the board, used for identification.")));
-        this.trackers = SettingsUtil.getOrSetSectionFunction().apply(section, "trackers", this.trackers,
+        this.trackers = SettingsUtil.getOrSetSectionFunction(section, "trackers", this.trackers,
                 Optional.of(List.of(
                         "A list of trackers to be displayed on placeholders.",
                         "An example tracker is:",
@@ -41,18 +41,18 @@ public class BoardSettings implements SettingsSerializer {
                         "Which can be used in the placeholder %astrallb_<board>_<position>_display_<date>%",
                         "where 'display' is the tracker id."
                 )));
-        this.syncUpdateInterval = SettingsUtil.getOrSetIntFunction().apply(section, "sync-update-interval", this.syncUpdateInterval,
+        this.syncUpdateInterval = SettingsUtil.getOrSetIntFunction(section, "sync-update-interval", this.syncUpdateInterval,
                 Optional.of(List.of("Sync update interval in seconds.", "Default is 30 seconds.")));
-        this.asyncUpdateInterval = SettingsUtil.getOrSetIntFunction().apply(section, "async-update-interval", this.asyncUpdateInterval,
+        this.asyncUpdateInterval = SettingsUtil.getOrSetIntFunction(section, "async-update-interval", this.asyncUpdateInterval,
                 Optional.of(List.of("Async update interval in ticks.", "It's being used for multi-threading checks.", "Default is 20 ticks.")));
-        this.rowSize = SettingsUtil.getOrSetIntFunction().apply(section, "row-size", this.rowSize,
-                Optional.of(List.of("The 'top' amount of cached values from the database.", "Default is 15.")));
-        this.reversed = SettingsUtil.getOrSetBooleanFunction().apply(section, "reversed", this.reversed,
+        this.reversed = SettingsUtil.getOrSetBooleanFunction(section, "reversed", this.reversed,
                 Optional.of(List.of("If the board sorting order should be reversed.", "Default is false.")));
-        this.defaultTrackerPlaceholder = SettingsUtil.getOrSetStringFunction().apply(section, "default-tracker", this.defaultTrackerPlaceholder,
+        this.defaultTrackerPlaceholder = SettingsUtil.getOrSetStringFunction(section, "default-tracker", this.defaultTrackerPlaceholder,
                 Optional.of(List.of("The default tracker placeholder to be used if no tracker is found in the database.", "Default is \"---\".")));
-        this.updateSettings.load(SettingsUtil.getOrCreateSection().apply(section, "updates", Optional.of(List.of(""))));
-        this.exemptPlayers.addAll(SettingsUtil.getOrSetStringCollectionFunction().apply(section, "exempt-players", this.exemptPlayers, Optional.empty()));
+        this.defaultSorterPlaceholder = SettingsUtil.getOrSetStringFunction(section, "default-sorter", this.defaultSorterPlaceholder,
+                Optional.of(List.of("The default sorter placeholder to be used when no sorter is found in the database.", "Default is \"---\".")));
+        this.updateSettings.load(SettingsUtil.getOrCreateSection(section, "updates", Optional.of(List.of(""))));
+        this.exemptPlayers.addAll(SettingsUtil.getOrSetStringCollectionFunction(section, "exempt-players", this.exemptPlayers, Optional.empty()));
     }
 
     @Getter
@@ -69,14 +69,9 @@ public class BoardSettings implements SettingsSerializer {
     @Setter
     private int syncUpdateInterval = 30;
 
-
     @Getter
     @Setter
     private int asyncUpdateInterval = 20;
-
-    @Getter
-    @Setter
-    private int rowSize = 15;
 
     @Getter
     @Setter
@@ -85,6 +80,10 @@ public class BoardSettings implements SettingsSerializer {
     @Getter
     @Setter
     private String defaultTrackerPlaceholder = "---";
+
+    @Getter
+    @Setter
+    private String defaultSorterPlaceholder = "---";
 
     @Getter
     private final UpdateSettings updateSettings = new UpdateSettings();

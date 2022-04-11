@@ -1,6 +1,5 @@
 package ro.nico.leaderboard.storage.cache;
 
-import com.google.common.collect.ImmutableMap;
 import lombok.AccessLevel;
 import lombok.Getter;
 import me.clip.placeholderapi.PlaceholderAPI;
@@ -12,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 import ro.nico.leaderboard.api.Board;
 import ro.nico.leaderboard.data.PlayerData;
 import ro.nico.leaderboard.data.PlayerId;
+import ro.nico.leaderboard.settings.UpdateSettings;
 import ro.nico.leaderboard.storage.SQLDateType;
 import ro.nico.leaderboard.util.RankedMapList;
 
@@ -34,28 +34,53 @@ public class BoardData {
     public void load() throws IOException {
         if (!this.data.isEmpty())
             this.data.clear();
-        this.data.put(SQLDateType.ALLTIME, new RankedMapList(this.board));
+        this.data.put(SQLDateType.ALLTIME, new RankedMapList(this.board, SQLDateType.ALLTIME));
+        UpdateSettings updateSettings = this.board.getBoardSettings().getUpdateSettings();
+        if (updateSettings.isHourlyUpdated())
+            this.data.put(SQLDateType.HOURLY, new RankedMapList(this.board, SQLDateType.HOURLY));
+        if (updateSettings.isDailyUpdated())
+            this.data.put(SQLDateType.DAILY, new RankedMapList(this.board, SQLDateType.DAILY));
+        if (updateSettings.isWeeklyUpdated())
+            this.data.put(SQLDateType.WEEKLY, new RankedMapList(this.board, SQLDateType.WEEKLY));
+        if (updateSettings.isMonthlyUpdated())
+            this.data.put(SQLDateType.MONTHLY, new RankedMapList(this.board, SQLDateType.MONTHLY));
+        if (updateSettings.isYearlyUpdated())
+            this.data.put(SQLDateType.YEARLY, new RankedMapList(this.board, SQLDateType.YEARLY));
     }
 
     public void unload() {
         if (this.asyncFutureData != null && this.asyncFutureData.cancel(false))
             this.asyncFutureData = null;
         this.data.values().forEach(RankedMapList::unload);
+        this.data.clear();
+    }
+
+    @NotNull
+    public PlayerData getData(int rank, @NotNull SQLDateType type) {
+        if (!this.data.containsKey(type))
+            return new PlayerData(board.getBoardSettings().getDefaultSorterPlaceholder(), new HashMap<>(), -1);
+        if (!this.data.get(type).containsRank(rank))
+            return new PlayerData(board.getBoardSettings().getDefaultSorterPlaceholder(), new HashMap<>(), -1);
+        return this.data.get(type).getValueByRank(rank);
+    }
+
+    @NotNull
+    public PlayerData getData(Player player, @NotNull SQLDateType type) {
+        PlayerId key = new PlayerId(player.getName(), player.getUniqueId());
+        if (!this.data.containsKey(type))
+            return new PlayerData(board.getBoardSettings().getDefaultSorterPlaceholder(), new HashMap<>(), -1);
+        if (!this.data.get(type).containsKey(key))
+            return new PlayerData(board.getBoardSettings().getDefaultSorterPlaceholder(), new HashMap<>(), -1);
+        return this.data.get(type).getValueByKey(key);
     }
 
     @Nullable
-    public PlayerData getData(int rank, @NotNull SQLDateType type) {
-        if (!this.getData().containsKey(type))
-            return null;
-        return this.data.get(type).getByRank(rank);
-    }
-
-    public PlayerData getData(Player player, @NotNull SQLDateType type) {
-        return this.data.get(type).getByKey(new PlayerId(player.getName(), player.getUniqueId()));
-    }
-
-    public ImmutableMap<PlayerId, PlayerData> dumpAllData(@NotNull SQLDateType type) {
-        return ImmutableMap.copyOf(this.data.get(type).asMap());
+    public PlayerId getKey(int rank, @NotNull SQLDateType type) {
+        if (!this.data.containsKey(type))
+            return new PlayerId(board.getBoardSettings().getDefaultSorterPlaceholder(), UUID.randomUUID());
+        if (!this.data.get(type).containsRank(rank))
+            return new PlayerId(board.getBoardSettings().getDefaultSorterPlaceholder(), UUID.randomUUID());
+        return this.data.get(type).getKeyByRank(rank);
     }
 
     public void asyncUpdate() {

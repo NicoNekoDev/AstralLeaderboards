@@ -6,6 +6,8 @@ authors: [ nico ]
 softdepend:
   - PlaceholderAPI
   - Vault
+libraries:
+  - org.mapdb:mapdb:3.0.8
 commands:
   astrallb:
     description: AstralLeaderboards command

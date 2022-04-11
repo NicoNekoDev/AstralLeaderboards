@@ -10,6 +10,7 @@ import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 import ro.nico.leaderboard.AstralLeaderboardsPlugin;
 import ro.nico.leaderboard.settings.BoardSettings;
+import ro.nico.leaderboard.storage.SQLDateType;
 import ro.nico.leaderboard.storage.cache.BoardData;
 
 import java.io.File;
@@ -31,6 +32,17 @@ public class Board {
         this.boardFile = boardFile;
         this.boardSettings = boardSettings;
         this.boardData = new BoardData(this); // KEEP ORDER
+    }
+
+    public boolean hasBoardUpdateType(SQLDateType type) {
+        return switch (type) {
+            case ALLTIME -> true;
+            case HOURLY -> boardSettings.getUpdateSettings().isHourlyUpdated();
+            case DAILY -> boardSettings.getUpdateSettings().isDailyUpdated();
+            case WEEKLY -> boardSettings.getUpdateSettings().isWeeklyUpdated();
+            case MONTHLY -> boardSettings.getUpdateSettings().isMonthlyUpdated();
+            case YEARLY -> boardSettings.getUpdateSettings().isYearlyUpdated();
+        };
     }
 
     public Board addTracker(@NotNull String trackerId, @NotNull String trackerPlaceholder) {

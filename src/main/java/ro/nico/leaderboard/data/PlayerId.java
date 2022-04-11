@@ -3,21 +3,19 @@ package ro.nico.leaderboard.data;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NonNull;
 import org.jetbrains.annotations.NotNull;
 import org.mapdb.DataInput2;
 import org.mapdb.DataOutput2;
 import org.mapdb.Serializer;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.UUID;
 
 @AllArgsConstructor
 @EqualsAndHashCode
-public class PlayerId implements Serializable {
-    @Getter @NonNull private final String name;
-    @Getter @NonNull private final UUID uuid;
+public class PlayerId {
+    @Getter @NotNull private final String name;
+    @Getter @NotNull private final UUID uuid;
 
     public static final Serializer<PlayerId> SERIALIZER = new Serializer<>() {
         @Override

@@ -1,64 +1,50 @@
 package ro.nico.leaderboard.util;
 
-import io.github.NicoNekoDev.SimpleTuples.Pair;
-import org.mapdb.DB;
-import org.mapdb.DBMaker;
+import org.mapdb.HTreeMap;
 import org.mapdb.Serializer;
 import ro.nico.leaderboard.api.Board;
 import ro.nico.leaderboard.data.PlayerData;
 import ro.nico.leaderboard.data.PlayerId;
 import ro.nico.leaderboard.storage.SQLDateType;
 
-import java.io.File;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentMap;
 
 public class RankedMapList {
-    private final ConcurrentMap<Integer, PlayerId> rankList;
-    private final ConcurrentMap<PlayerId, PlayerData> map;
-    private final File cacheFile;
-    private final DB mapdb;
+    private final HTreeMap<Integer, PlayerId> rankList;
+    private final HTreeMap<PlayerId, PlayerData> map;
 
-    public RankedMapList(Board board) {
-        this.cacheFile = new File(board.getPlugin().getCacheDir(), UUID.randomUUID() + ".cache");
-        this.mapdb = DBMaker.fileDB(cacheFile).fileMmapEnableIfSupported().make();
-        this.rankList = this.mapdb.hashMap("ranks").keySerializer(Serializer.INTEGER).valueSerializer(PlayerId.SERIALIZER).create();
-        this.map = this.mapdb.hashMap("data").keySerializer(PlayerId.SERIALIZER).valueSerializer(PlayerData.SERIALIZER).create();
+    public RankedMapList(Board board, SQLDateType dateType) throws IOException {
+        this.rankList = board.getPlugin().getMapDB().hashMap("ranks_" + board.getId() + "_" + dateType.name().toLowerCase(), Serializer.INTEGER, PlayerId.SERIALIZER).createOrOpen();
+        this.map = board.getPlugin().getMapDB().hashMap("map_" + board.getId() + "_" + dateType.name().toLowerCase(), PlayerId.SERIALIZER, PlayerData.SERIALIZER).createOrOpen();
+    }
+
+    public void unload() {
+        this.rankList.close();
+        this.map.close();
     }
 
     public void update(Board board, SQLDateType dateType) throws SQLException {
         // this.clear(); < do we need clear?
-        board.getPlugin().getStorage().getDataForBoard(Pair.of(this.rankList, this.map), board, dateType);
+        board.getPlugin().getStorage().getDataForBoard(this.rankList, this.map, board, dateType);
     }
 
-    public void unload() {
-        this.mapdb.close();
-        this.cacheFile.delete();
-    }
-
-    protected void put(int rank, PlayerId key, PlayerData value) {
-        this.map.put(key, value);
-        this.rankList.put(rank, key);
-    }
-
-    public PlayerData getByKey(PlayerId key) {
+    public PlayerData getValueByKey(PlayerId key) {
         return map.get(key);
     }
 
-    public PlayerData getByRank(int rank) {
-        return getByKey(rankList.get(rank));
+    public PlayerData getValueByRank(int rank) {
+        return getValueByKey(getKeyByRank(rank));
+    }
+
+    public PlayerId getKeyByRank(int rank) {
+        return rankList.get(rank);
     }
 
     public Map<PlayerId, PlayerData> asMap() {
         return map;
     }
-
-    public void remove(int rank) {
-        map.remove(rankList.remove(rank));
-    }
-
 
     public boolean containsKey(PlayerId key) {
         return map.containsKey(key);
@@ -72,12 +58,4 @@ public class RankedMapList {
         return rankList.containsKey(rank);
     }
 
-    public boolean isEmpty() {
-        return map.isEmpty();
-    }
-
-    public void clear() {
-        rankList.clear();
-        map.clear();
-    }
 }

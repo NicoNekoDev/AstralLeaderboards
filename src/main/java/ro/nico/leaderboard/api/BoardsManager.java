@@ -2,10 +2,13 @@ package ro.nico.leaderboard.api;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
 import ro.nico.leaderboard.AstralLeaderboardsPlugin;
+import ro.nico.leaderboard.api.event.BoardCreateEvent;
+import ro.nico.leaderboard.api.event.BoardDeleteEvent;
 import ro.nico.leaderboard.settings.BoardSettings;
 
 import java.io.File;
@@ -89,6 +92,7 @@ public class BoardsManager {
         this.boards.put(id, board);
         board.saveSettings();
         board.enable();
+        Bukkit.getPluginManager().callEvent(new BoardCreateEvent(board));
         return board;
     }
 
@@ -97,6 +101,7 @@ public class BoardsManager {
         if (board != null) {
             board.disable();
             board.deleteSettings();
+            Bukkit.getPluginManager().callEvent(new BoardDeleteEvent(board));
         }
     }
 

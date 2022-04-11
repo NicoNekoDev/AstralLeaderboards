@@ -9,13 +9,12 @@ import org.mapdb.DataOutput2;
 import org.mapdb.Serializer;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 // thank you java, I hate it.
 @AllArgsConstructor
-public class PlayerData implements Serializable {
+public class PlayerData {
     @Getter @NonNull private final String sorter;
     @Getter @NonNull private final Map<String, String> trackers;
     @Getter private final int rank;

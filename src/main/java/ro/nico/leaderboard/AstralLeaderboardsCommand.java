@@ -1,6 +1,5 @@
 package ro.nico.leaderboard;
 
-import com.google.common.collect.ImmutableMap;
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -35,26 +34,26 @@ public class AstralLeaderboardsCommand implements TabExecutor {
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
         MessageSettings messageSettings = plugin.getSettings().getMessageSettings();
         if (args.length == 0) {
-            if (plugin.getVaultPermissions().has(sender, "astralleaderboards.command.help")) this.sendHelp(sender);
+            if (plugin.hasPermission(sender, "astralleaderboards.command.help")) this.sendHelp(sender);
             else
                 sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getNoPermissionMessage()));
         } else {
             switch (args[0].toLowerCase()) {
                 case "help" -> {
-                    if (plugin.getVaultPermissions().has(sender, "astralleaderboards.command.help"))
+                    if (plugin.hasPermission(sender, "astralleaderboards.command.help"))
                         this.sendHelp(sender);
                     else
                         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getNoPermissionMessage()));
                 }
                 case "reload" -> {
-                    if (plugin.getVaultPermissions().has(sender, "astralleaderboards.command.reload")) {
+                    if (plugin.hasPermission(sender, "astralleaderboards.command.reload")) {
                         plugin.reloadPlugin();
                         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getReloadSuccessMessage()));
                     } else
                         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getNoPermissionMessage()));
                 }
                 case "update" -> {
-                    if (plugin.getVaultPermissions().has(sender, "astralleaderboards.command.update")) {
+                    if (plugin.hasPermission(sender, "astralleaderboards.command.update")) {
                         if (args.length == 2 || args.length == 3) {
                             Board board = plugin.getBoardsManager().getBoard(args[1]);
                             if (board == null) {
@@ -70,7 +69,7 @@ public class AstralLeaderboardsCommand implements TabExecutor {
                         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getNoPermissionMessage()));
                 }
                 case "create" -> {
-                    if (plugin.getVaultPermissions().has(sender, "astralleaderboards.command.create")) {
+                    if (plugin.hasPermission(sender, "astralleaderboards.command.create")) {
                         if (args.length == 3) {
                             BoardsManager boardsManager = plugin.getBoardsManager();
                             if (boardsManager.hasBoard(args[1])) {
@@ -93,7 +92,7 @@ public class AstralLeaderboardsCommand implements TabExecutor {
                         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getNoPermissionMessage()));
                 }
                 case "delete" -> {
-                    if (plugin.getVaultPermissions().has(sender, "astralleaderboards.command.delete")) {
+                    if (plugin.hasPermission(sender, "astralleaderboards.command.delete")) {
                         if (args.length == 2) {
                             BoardsManager boardsManager = plugin.getBoardsManager();
                             if (!boardsManager.hasBoard(args[1])) {
@@ -108,42 +107,60 @@ public class AstralLeaderboardsCommand implements TabExecutor {
                         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getNoPermissionMessage()));
                 }
                 case "data" -> {
-                    if (plugin.getVaultPermissions().has(sender, "astralleaderboards.command.data")) {
-                        if (args.length == 3) {
+                    if (plugin.hasPermission(sender, "astralleaderboards.command.data")) {
+                        if (args.length == 3 || args.length == 4) {
                             Board board = plugin.getBoardsManager().getBoard(args[1]);
                             if (board == null) {
                                 sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getBoardNotFoundMessage().replace("%board%", args[1])));
                             } else {
                                 try {
                                     SQLDateType dateType = SQLDateType.valueOf(args[2].toUpperCase());
-                                    ImmutableMap<PlayerId, PlayerData> data = board.getBoardData().dumpAllData(dateType);
-                                    sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getDataHeaderMessage()
-                                            .replace("%board%", board.getId())
-                                            .replace("%size%", String.valueOf(board.getBoardSettings().getRowSize()))));
-                                    for (Map.Entry<PlayerId, PlayerData> entry : data.entrySet()) {
-                                        PlayerId key = entry.getKey();
-                                        PlayerData value = entry.getValue();
-                                        sender.sendMessage(
-                                                ChatColor.translateAlternateColorCodes('&',
-                                                        messageSettings.getDataHeaderEntryMessage()
-                                                                .replace("%name%", key.getName())
-                                                                .replace("%uuid%", key.getUuid().toString())
-                                                                .replace("%sorter%", value.getSorter())
-                                                                .replace("%rank%", String.valueOf(value.getRank()))
-                                                                .replace("%trackers%", this.trackersToString(value.getTrackers()))));
-                                    }
+                                    if (board.hasBoardUpdateType(dateType)) {
+                                        int page = 1;
+                                        if (args.length == 4) {
+                                            try {
+                                                page = Integer.parseInt(args[3]);
+                                                if (page < 1)
+                                                    page = 1;
+                                            } catch (NumberFormatException ignore) {
+                                            }
+                                        }
+                                        int start = ((page - 1) * 10) + 1;
+                                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getDataHeaderMessage()
+                                                .replace("%board%", board.getId())
+                                                .replace("%type%", dateType.name().toLowerCase())
+                                                .replace("%page%", String.valueOf(page))));
+                                        for (int i = start; i < start + 10; i++) {
+                                            PlayerId key = board.getBoardData().getKey(i, dateType);
+                                            PlayerData value = board.getBoardData().getData(i, dateType);
+                                            sender.sendMessage(
+                                                    ChatColor.translateAlternateColorCodes('&',
+                                                            messageSettings.getDataHeaderEntryMessage()
+                                                                    .replace("%name%", key.getName())
+                                                                    .replace("%uuid%", key.getUuid().toString())
+                                                                    .replace("%sorter%", value.getSorter())
+                                                                    .replace("%rank%", String.valueOf(i))
+                                                                    .replace("%trackers%", this.trackersToString(value.getTrackers()))));
+                                        }
+                                    } else
+                                        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getBoardDateTypeNotEnabledMessage()
+                                                .replace("%board%", board.getId())
+                                                .replace("%type%", args[2])));
                                 } catch (IllegalArgumentException e) {
-                                    sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getInvalidDateTypeMessage().replace("%type%", args[2]).replace("%date_types%", Arrays.stream(SQLDateType.values()).map(type -> type.name().toLowerCase()).collect(Collectors.joining(", ")))));
+                                    sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getInvalidDateTypeMessage()
+                                            .replace("%board%", board.getId())
+                                            .replace("%type%", args[2])
+                                            .replace("%date_types%", Arrays.stream(SQLDateType.values()).map(type -> type.name().toLowerCase()).collect(Collectors.joining(", ")))));
                                 }
+
                             }
-                        } else {
+                        } else
                             sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getBoardDataUsageMessage()));
-                        }
                     } else
                         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getNoPermissionMessage()));
                 }
                 case "addtracker" -> {
-                    if (plugin.getVaultPermissions().has(sender, "astralleaderboards.command.addtracker")) {
+                    if (plugin.hasPermission(sender, "astralleaderboards.command.addtracker")) {
                         if (args.length == 4) {
                             Board board = plugin.getBoardsManager().getBoard(args[1]);
                             if (board == null) {
@@ -164,7 +181,7 @@ public class AstralLeaderboardsCommand implements TabExecutor {
                         sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getNoPermissionMessage()));
                 }
                 case "removetracker" -> {
-                    if (plugin.getVaultPermissions().has(sender, "astralleaderboards.command.removetracker")) {
+                    if (plugin.hasPermission(sender, "astralleaderboards.command.removetracker")) {
                         if (args.length == 3) {
                             Board board = plugin.getBoardsManager().getBoard(args[1]);
                             if (board == null) {

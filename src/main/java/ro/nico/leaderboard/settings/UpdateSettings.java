@@ -12,15 +12,15 @@ public class UpdateSettings implements SettingsSerializer {
 
     @Override
     public void load(ConfigurationSection section) {
-        this.hourlyUpdated = SettingsUtil.getOrSetBooleanFunction().apply(section, "hourly", this.hourlyUpdated,
+        this.hourlyUpdated = SettingsUtil.getOrSetBooleanFunction(section, "hourly", this.hourlyUpdated,
                 Optional.of(List.of("If the board should be updated hourly.", "Default is false.")));
-        this.dailyUpdated = SettingsUtil.getOrSetBooleanFunction().apply(section, "daily", this.dailyUpdated,
+        this.dailyUpdated = SettingsUtil.getOrSetBooleanFunction(section, "daily", this.dailyUpdated,
                 Optional.of(List.of("If the board should be updated daily.", "Default is false.")));
-        this.weeklyUpdated = SettingsUtil.getOrSetBooleanFunction().apply(section, "weekly", this.weeklyUpdated,
+        this.weeklyUpdated = SettingsUtil.getOrSetBooleanFunction(section, "weekly", this.weeklyUpdated,
                 Optional.of(List.of("If the board should be updated weekly.", "Default is false.")));
-        this.monthlyUpdated = SettingsUtil.getOrSetBooleanFunction().apply(section, "monthly", this.monthlyUpdated,
+        this.monthlyUpdated = SettingsUtil.getOrSetBooleanFunction(section, "monthly", this.monthlyUpdated,
                 Optional.of(List.of("If the board should be updated monthly.", "Default is false.")));
-        this.yearlyUpdated = SettingsUtil.getOrSetBooleanFunction().apply(section, "yearly", this.yearlyUpdated,
+        this.yearlyUpdated = SettingsUtil.getOrSetBooleanFunction(section, "yearly", this.yearlyUpdated,
                 Optional.of(List.of("If the board should be updated yearly.", "Default is false.")));
     }
 

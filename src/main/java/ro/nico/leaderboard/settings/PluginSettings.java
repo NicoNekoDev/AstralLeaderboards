@@ -12,9 +12,9 @@ public class PluginSettings implements SettingsSerializer {
 
     @Override
     public void load(ConfigurationSection section) {
-        this.defaultPlaceholder = SettingsUtil.getOrSetStringFunction().apply(section, "default-placeholder", this.defaultPlaceholder, Optional.empty());
-        this.storageSettings.load(SettingsUtil.getOrCreateSection().apply(section, "storage", Optional.empty()));
-        this.messageSettings.load(SettingsUtil.getOrCreateSection().apply(section, "messages", Optional.empty()));
+        this.defaultPlaceholder = SettingsUtil.getOrSetStringFunction(section, "default-placeholder", this.defaultPlaceholder, Optional.empty());
+        this.storageSettings.load(SettingsUtil.getOrCreateSection(section, "storage", Optional.empty()));
+        this.messageSettings.load(SettingsUtil.getOrCreateSection(section, "messages", Optional.empty()));
     }
 
     @NonNull

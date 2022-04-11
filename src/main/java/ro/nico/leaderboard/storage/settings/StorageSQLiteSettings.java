@@ -13,6 +13,6 @@ public class StorageSQLiteSettings implements SettingsSerializer {
 
     @Override
     public void load(ConfigurationSection section) {
-        this.fileName = SettingsUtil.getOrSetStringFunction().apply(section, "file-name", this.fileName, Optional.empty());
+        this.fileName = SettingsUtil.getOrSetStringFunction(section, "file-name", this.fileName, Optional.empty());
     }
 }

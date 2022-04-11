@@ -3,7 +3,6 @@ package ro.nico.leaderboard.settings;
 import lombok.Getter;
 import lombok.NonNull;
 import org.bukkit.configuration.ConfigurationSection;
-import org.jetbrains.annotations.Nullable;
 import ro.nico.leaderboard.util.SettingsUtil;
 
 import java.util.LinkedList;
@@ -13,30 +12,31 @@ import java.util.Optional;
 public class MessageSettings implements SettingsSerializer {
 
     @Override
-    public void load(@Nullable ConfigurationSection section) {
-        this.helpMessages.addAll(SettingsUtil.getOrSetStringCollectionFunction().apply(section, "help", this.helpMessages, Optional.empty()));
-        this.boardUpdateUsageMessage = SettingsUtil.getOrSetStringFunction().apply(section, "board-update-usage", this.boardUpdateUsageMessage, Optional.empty());
-        this.boardCreateUsageMessage = SettingsUtil.getOrSetStringFunction().apply(section, "board-create-usage", this.boardCreateUsageMessage, Optional.empty());
-        this.boardDeleteUsageMessage = SettingsUtil.getOrSetStringFunction().apply(section, "board-delete-usage", this.boardDeleteUsageMessage, Optional.empty());
-        this.boardDataUsageMessage = SettingsUtil.getOrSetStringFunction().apply(section, "board-data-usage", this.boardDataUsageMessage, Optional.empty());
-        this.trackerAddUsageMessage = SettingsUtil.getOrSetStringFunction().apply(section, "tracker-add-usage", this.trackerAddUsageMessage, Optional.empty());
-        this.trackerRemoveUsageMessage = SettingsUtil.getOrSetStringFunction().apply(section, "tracker-remove-usage", this.trackerRemoveUsageMessage, Optional.empty());
-        this.noPermissionMessage = SettingsUtil.getOrSetStringFunction().apply(section, "no-permission", this.noPermissionMessage, Optional.empty());
-        this.reloadSuccessMessage = SettingsUtil.getOrSetStringFunction().apply(section, "reload-success", this.reloadSuccessMessage, Optional.empty());
-        this.boardCreateSuccessMessage = SettingsUtil.getOrSetStringFunction().apply(section, "board-create-success", this.boardCreateSuccessMessage, Optional.empty());
-        this.boardCreateFailMessage = SettingsUtil.getOrSetStringFunction().apply(section, "board-create-fail", this.boardCreateFailMessage, Optional.empty());
-        this.boardDeleteSuccessMessage = SettingsUtil.getOrSetStringFunction().apply(section, "board-delete-success", this.boardDeleteSuccessMessage, Optional.empty());
-        this.boardNotFoundMessage = SettingsUtil.getOrSetStringFunction().apply(section, "board-not-found", this.boardNotFoundMessage, Optional.empty());
-        this.boardUpdatedMessage = SettingsUtil.getOrSetStringFunction().apply(section, "board-updated", this.boardUpdatedMessage, Optional.empty());
-        this.boardAlreadyExistsMessage = SettingsUtil.getOrSetStringFunction().apply(section, "board-already-exists", this.boardAlreadyExistsMessage, Optional.empty());
-        this.boardInvalidIdMessage = SettingsUtil.getOrSetStringFunction().apply(section, "board-invalid-id", this.boardInvalidIdMessage, Optional.empty());
-        this.invalidDateTypeMessage = SettingsUtil.getOrSetStringFunction().apply(section, "invalid-date-type", this.invalidDateTypeMessage, Optional.empty());
-        this.dataHeaderMessage = SettingsUtil.getOrSetStringFunction().apply(section, "data-header", this.dataHeaderMessage, Optional.empty());
-        this.dataHeaderEntryMessage = SettingsUtil.getOrSetStringFunction().apply(section, "data-header-entry", this.dataHeaderEntryMessage, Optional.empty());
-        this.trackerAlreadyExistsMessage = SettingsUtil.getOrSetStringFunction().apply(section, "tracker-already-exists", this.trackerAlreadyExistsMessage, Optional.empty());
-        this.trackerNotFoundMessage = SettingsUtil.getOrSetStringFunction().apply(section, "tracker-not-found", this.trackerNotFoundMessage, Optional.empty());
-        this.trackerAddedMessage = SettingsUtil.getOrSetStringFunction().apply(section, "tracker-added", this.trackerAddedMessage, Optional.empty());
-        this.trackerRemovedMessage = SettingsUtil.getOrSetStringFunction().apply(section, "tracker-removed", this.trackerRemovedMessage, Optional.empty());
+    public void load(ConfigurationSection section) {
+        this.helpMessages.addAll(SettingsUtil.getOrSetStringCollectionFunction(section, "help", this.helpMessages, Optional.empty()));
+        this.boardUpdateUsageMessage = SettingsUtil.getOrSetStringFunction(section, "board-update-usage", this.boardUpdateUsageMessage, Optional.empty());
+        this.boardCreateUsageMessage = SettingsUtil.getOrSetStringFunction(section, "board-create-usage", this.boardCreateUsageMessage, Optional.empty());
+        this.boardDeleteUsageMessage = SettingsUtil.getOrSetStringFunction(section, "board-delete-usage", this.boardDeleteUsageMessage, Optional.empty());
+        this.boardDataUsageMessage = SettingsUtil.getOrSetStringFunction(section, "board-data-usage", this.boardDataUsageMessage, Optional.empty());
+        this.trackerAddUsageMessage = SettingsUtil.getOrSetStringFunction(section, "tracker-add-usage", this.trackerAddUsageMessage, Optional.empty());
+        this.trackerRemoveUsageMessage = SettingsUtil.getOrSetStringFunction(section, "tracker-remove-usage", this.trackerRemoveUsageMessage, Optional.empty());
+        this.noPermissionMessage = SettingsUtil.getOrSetStringFunction(section, "no-permission", this.noPermissionMessage, Optional.empty());
+        this.reloadSuccessMessage = SettingsUtil.getOrSetStringFunction(section, "reload-success", this.reloadSuccessMessage, Optional.empty());
+        this.boardCreateSuccessMessage = SettingsUtil.getOrSetStringFunction(section, "board-create-success", this.boardCreateSuccessMessage, Optional.empty());
+        this.boardCreateFailMessage = SettingsUtil.getOrSetStringFunction(section, "board-create-fail", this.boardCreateFailMessage, Optional.empty());
+        this.boardDeleteSuccessMessage = SettingsUtil.getOrSetStringFunction(section, "board-delete-success", this.boardDeleteSuccessMessage, Optional.empty());
+        this.boardNotFoundMessage = SettingsUtil.getOrSetStringFunction(section, "board-not-found", this.boardNotFoundMessage, Optional.empty());
+        this.boardUpdatedMessage = SettingsUtil.getOrSetStringFunction(section, "board-updated", this.boardUpdatedMessage, Optional.empty());
+        this.boardAlreadyExistsMessage = SettingsUtil.getOrSetStringFunction(section, "board-already-exists", this.boardAlreadyExistsMessage, Optional.empty());
+        this.boardInvalidIdMessage = SettingsUtil.getOrSetStringFunction(section, "board-invalid-id", this.boardInvalidIdMessage, Optional.empty());
+        this.invalidDateTypeMessage = SettingsUtil.getOrSetStringFunction(section, "invalid-date-type", this.invalidDateTypeMessage, Optional.empty());
+        this.dataHeaderMessage = SettingsUtil.getOrSetStringFunction(section, "data-header", this.dataHeaderMessage, Optional.empty());
+        this.dataHeaderEntryMessage = SettingsUtil.getOrSetStringFunction(section, "data-header-entry", this.dataHeaderEntryMessage, Optional.empty());
+        this.trackerAlreadyExistsMessage = SettingsUtil.getOrSetStringFunction(section, "tracker-already-exists", this.trackerAlreadyExistsMessage, Optional.empty());
+        this.trackerNotFoundMessage = SettingsUtil.getOrSetStringFunction(section, "tracker-not-found", this.trackerNotFoundMessage, Optional.empty());
+        this.trackerAddedMessage = SettingsUtil.getOrSetStringFunction(section, "tracker-added", this.trackerAddedMessage, Optional.empty());
+        this.trackerRemovedMessage = SettingsUtil.getOrSetStringFunction(section, "tracker-removed", this.trackerRemovedMessage, Optional.empty());
+        this.boardDateTypeNotEnabledMessage = SettingsUtil.getOrSetStringFunction(section, "board-date-type-not-enabled", this.boardDateTypeNotEnabledMessage, Optional.empty());
     }
 
     @Getter
@@ -68,7 +68,7 @@ public class MessageSettings implements SettingsSerializer {
 
     @NonNull
     @Getter
-    private String boardDataUsageMessage = "&cUsage: &e/astrallb data <board> <date>";
+    private String boardDataUsageMessage = "&cUsage: &e/astrallb data <board> <date> [page]";
 
     @NonNull
     @Getter
@@ -120,7 +120,7 @@ public class MessageSettings implements SettingsSerializer {
 
     @NonNull
     @Getter
-    private String dataHeaderMessage = "&e%board% &7- &aShowing %size% entries";
+    private String dataHeaderMessage = "&e%board% &7- &aShowing page %page%";
 
     @NonNull
     @Getter
@@ -141,4 +141,8 @@ public class MessageSettings implements SettingsSerializer {
     @NonNull
     @Getter
     private String trackerRemovedMessage = "&aSuccessfully removed the tracker &e%tracker%&a!";
+
+    @NonNull
+    @Getter
+    private String boardDateTypeNotEnabledMessage = "&cThe date type &e%type% &cis not enabled for the board &e%board%&c!";
 }

@@ -1,6 +1,5 @@
 package ro.nico.leaderboard.storage;
 
-import io.github.NicoNekoDev.SimpleTuples.Pair;
 import ro.nico.leaderboard.AstralLeaderboardsPlugin;
 import ro.nico.leaderboard.api.Board;
 import ro.nico.leaderboard.data.PlayerData;
@@ -44,8 +43,8 @@ public class StorageConfiguration extends Storage {
     }
 
     @Override
-    public void getDataForBoard(Pair<ConcurrentMap<Integer, PlayerId>, ConcurrentMap<PlayerId, PlayerData>> pair, Board board, SQLDateType dateType) throws SQLException {
+    public void getDataForBoard(ConcurrentMap<Integer, PlayerId> rankMap, ConcurrentMap<PlayerId, PlayerData> dataMap, Board board, SQLDateType dateType) throws SQLException {
         if (storage != null)
-            storage.getDataForBoard(pair, board, dateType);
+            storage.getDataForBoard(rankMap, dataMap, board, dateType);
     }
 }

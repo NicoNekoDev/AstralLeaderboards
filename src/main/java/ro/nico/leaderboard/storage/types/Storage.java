@@ -1,6 +1,5 @@
 package ro.nico.leaderboard.storage.types;
 
-import io.github.NicoNekoDev.SimpleTuples.Pair;
 import ro.nico.leaderboard.AstralLeaderboardsPlugin;
 import ro.nico.leaderboard.api.Board;
 import ro.nico.leaderboard.data.PlayerData;
@@ -25,5 +24,5 @@ public abstract class Storage {
 
     public abstract void putDataForBoard(Board board, Map<PlayerId, PlayerData> data) throws SQLException;
 
-    public abstract void getDataForBoard(Pair<ConcurrentMap<Integer, PlayerId>, ConcurrentMap<PlayerId, PlayerData>> pair, Board board, SQLDateType dateType) throws SQLException;
+    public abstract void getDataForBoard(ConcurrentMap<Integer, PlayerId> rankMap, ConcurrentMap<PlayerId, PlayerData> dataMap, Board board, SQLDateType dateType) throws SQLException;
 }

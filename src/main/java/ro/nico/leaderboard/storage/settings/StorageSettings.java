@@ -20,8 +20,8 @@ public class StorageSettings implements SettingsSerializer {
 
     @Override
     public void load(ConfigurationSection section) {
-        this.usingMySQL = SettingsUtil.getOrSetBooleanFunction().apply(section, "use-mysql", this.usingMySQL, Optional.of(List.of("If MySQL is gonna be used.")));
-        this.MySQLSettings.load(SettingsUtil.getOrCreateSection().apply(section, "mysql", Optional.empty()));
-        this.SQLiteSettings.load(SettingsUtil.getOrCreateSection().apply(section, "sqlite", Optional.empty()));
+        this.usingMySQL = SettingsUtil.getOrSetBooleanFunction(section, "use-mysql", this.usingMySQL, Optional.of(List.of("If MySQL is gonna be used.")));
+        this.MySQLSettings.load(SettingsUtil.getOrCreateSection(section, "mysql", Optional.empty()));
+        this.SQLiteSettings.load(SettingsUtil.getOrCreateSection(section, "sqlite", Optional.empty()));
     }
 }
