@@ -23,7 +23,7 @@ jobs:
           java-version: '17'
           check-latest: true
 
-      - name: Build CitizensBooks with Maven
+      - name: Build & Deploy AstralLeaderboards with Maven
         run: mvn --batch-mode package -s deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
