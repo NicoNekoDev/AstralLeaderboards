@@ -24,6 +24,6 @@ jobs:
           check-latest: true
 
       - name: Build & Deploy AstralLeaderboards with Maven
-        run: mvn --batch-mode package -s deploy
+        run: mvn --batch-mode package deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
