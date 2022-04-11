@@ -17,7 +17,6 @@ import java.util.Map;
 public class PlayerData {
     @Getter @NonNull private final String sorter;
     @Getter @NonNull private final Map<String, String> trackers;
-    @Getter private final int rank;
 
     protected int getTrackersSize() {
         return this.trackers.size();
@@ -33,7 +32,6 @@ public class PlayerData {
                 dataOutput2.writeUTF(entry.getKey());
                 dataOutput2.writeUTF(entry.getValue());
             }
-            dataOutput2.writeInt(playerData.getRank());
         }
 
         @Override
@@ -46,8 +44,7 @@ public class PlayerData {
                 String value = dataInput2.readUTF();
                 trackers.put(key, value);
             }
-            int rank = dataInput2.readInt();
-            return new PlayerData(sorter, trackers, rank);
+            return new PlayerData(sorter, trackers);
         }
     };
 }

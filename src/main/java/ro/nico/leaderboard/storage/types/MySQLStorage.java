@@ -103,8 +103,10 @@ public class MySQLStorage extends Storage {
                     rank++; // increment the rank
                     String sorter = resultSet.getString("sorter");
                     Map<String, String> trackers = GsonUtil.convertJsonToMap(GsonUtil.fromBase64(resultSet.getString("trackers"))); // it converts the base64 string to a map using gson
+                    for (Map.Entry<String, String> entry : trackers.entrySet())
+                        trackers.put(entry.getKey(), entry.getValue().replace("%rank%", String.valueOf(rank))); // replace the %rank% with the actual rank
                     PlayerId playerId = new PlayerId(name, uuid);
-                    PlayerData playerData = new PlayerData(sorter, trackers, rank);
+                    PlayerData playerData = new PlayerData(sorter, trackers);
                     rankMap.put(rank, playerId);
                     dataMap.put(playerId, playerData);
                 }

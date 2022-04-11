@@ -55,13 +55,24 @@ public class AstralLeaderboardsCommand implements TabExecutor {
                 case "update" -> {
                     if (plugin.hasPermission(sender, "astralleaderboards.command.update")) {
                         if (args.length == 2 || args.length == 3) {
-                            Board board = plugin.getBoardsManager().getBoard(args[1]);
-                            if (board == null) {
-                                sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getBoardNotFoundMessage().replace("%board%", args[1])));
+                            boolean allBoards = "--all".equalsIgnoreCase(args[1]);
+                            if (allBoards) {
+                                int size = 0;
+                                for (Board board : plugin.getBoardsManager().getBoards().values()) {
+                                    boolean forceOffline = args.length == 3 && "--force-offline".equalsIgnoreCase(args[2]);
+                                    board.getBoardData().syncUpdate(forceOffline);
+                                    size++;
+                                }
+                                sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getBoardsUpdatedMessage().replace("%size%", String.valueOf(size))));
                             } else {
-                                boolean forceOffline = args.length == 3 && "--force-offline".equalsIgnoreCase(args[2]);
-                                board.getBoardData().syncUpdate(forceOffline);
-                                sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getBoardUpdatedMessage().replace("%board%", args[1])));
+                                Board board = plugin.getBoardsManager().getBoard(args[1]);
+                                if (board == null) {
+                                    sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getBoardNotFoundMessage().replace("%board%", args[1])));
+                                } else {
+                                    boolean forceOffline = args.length == 3 && "--force-offline".equalsIgnoreCase(args[2]);
+                                    board.getBoardData().syncUpdate(forceOffline);
+                                    sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getBoardUpdatedMessage().replace("%board%", args[1])));
+                                }
                             }
                         } else
                             sender.sendMessage(ChatColor.translateAlternateColorCodes('&', messageSettings.getBoardUpdateUsageMessage()));
@@ -219,8 +230,12 @@ public class AstralLeaderboardsCommand implements TabExecutor {
         if (args.length == 1) {
             return StringUtil.copyPartialMatches(args[0], List.of("help", "reload", "update", "create", "delete", "data"), new ArrayList<>());
         } else if (args.length == 2) {
-            if ("update".equalsIgnoreCase(args[0]) || "delete".equalsIgnoreCase(args[0]) || "data".equalsIgnoreCase(args[0])) {
+            if ("delete".equalsIgnoreCase(args[0]) || "data".equalsIgnoreCase(args[0])) {
                 return StringUtil.copyPartialMatches(args[1], plugin.getBoardsManager().getBoardsIds(), new ArrayList<>());
+            } else if ("update".equalsIgnoreCase(args[0])) {
+                List<String> completions = new ArrayList<>(plugin.getBoardsManager().getBoardsIds());
+                completions.add("--all");
+                return StringUtil.copyPartialMatches(args[1], completions, new ArrayList<>());
             }
         } else if (args.length == 3) {
             if ("create".equalsIgnoreCase(args[0])) {

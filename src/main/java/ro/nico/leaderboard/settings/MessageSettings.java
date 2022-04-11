@@ -27,6 +27,7 @@ public class MessageSettings implements SettingsSerializer {
         this.boardDeleteSuccessMessage = SettingsUtil.getOrSetStringFunction(section, "board-delete-success", this.boardDeleteSuccessMessage, Optional.empty());
         this.boardNotFoundMessage = SettingsUtil.getOrSetStringFunction(section, "board-not-found", this.boardNotFoundMessage, Optional.empty());
         this.boardUpdatedMessage = SettingsUtil.getOrSetStringFunction(section, "board-updated", this.boardUpdatedMessage, Optional.empty());
+        this.boardsUpdatedMessage = SettingsUtil.getOrSetStringFunction(section, "boards-updated", this.boardsUpdatedMessage, Optional.empty());
         this.boardAlreadyExistsMessage = SettingsUtil.getOrSetStringFunction(section, "board-already-exists", this.boardAlreadyExistsMessage, Optional.empty());
         this.boardInvalidIdMessage = SettingsUtil.getOrSetStringFunction(section, "board-invalid-id", this.boardInvalidIdMessage, Optional.empty());
         this.invalidDateTypeMessage = SettingsUtil.getOrSetStringFunction(section, "invalid-date-type", this.invalidDateTypeMessage, Optional.empty());
@@ -105,6 +106,10 @@ public class MessageSettings implements SettingsSerializer {
     @NonNull
     @Getter
     private String boardUpdatedMessage = "&aSuccessfully updated the board &e%board%&a!";
+
+    @NonNull
+    @Getter
+    private String boardsUpdatedMessage = "&aSuccessfully updated all boards!";
 
     @NonNull
     @Getter

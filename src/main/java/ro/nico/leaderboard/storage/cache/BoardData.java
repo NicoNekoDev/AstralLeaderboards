@@ -58,19 +58,19 @@ public class BoardData {
     @NotNull
     public PlayerData getData(int rank, @NotNull SQLDateType type) {
         if (!this.data.containsKey(type))
-            return new PlayerData(board.getBoardSettings().getDefaultSorterPlaceholder(), new HashMap<>(), -1);
+            return new PlayerData(board.getBoardSettings().getDefaultSorterPlaceholder(), new HashMap<>());
         if (!this.data.get(type).containsRank(rank))
-            return new PlayerData(board.getBoardSettings().getDefaultSorterPlaceholder(), new HashMap<>(), -1);
+            return new PlayerData(board.getBoardSettings().getDefaultSorterPlaceholder(), new HashMap<>());
         return this.data.get(type).getValueByRank(rank);
     }
 
     @NotNull
-    public PlayerData getData(Player player, @NotNull SQLDateType type) {
-        PlayerId key = new PlayerId(player.getName(), player.getUniqueId());
+    public PlayerData getData(OfflinePlayer player, @NotNull SQLDateType type) {
+        PlayerId key = new PlayerId(player.getName() != null ? player.getName() : board.getBoardSettings().getDefaultSorterPlaceholder(), player.getUniqueId());
         if (!this.data.containsKey(type))
-            return new PlayerData(board.getBoardSettings().getDefaultSorterPlaceholder(), new HashMap<>(), -1);
+            return new PlayerData(board.getBoardSettings().getDefaultSorterPlaceholder(), new HashMap<>());
         if (!this.data.get(type).containsKey(key))
-            return new PlayerData(board.getBoardSettings().getDefaultSorterPlaceholder(), new HashMap<>(), -1);
+            return new PlayerData(board.getBoardSettings().getDefaultSorterPlaceholder(), new HashMap<>());
         return this.data.get(type).getValueByKey(key);
     }
 
@@ -119,11 +119,12 @@ public class BoardData {
                 for (String entryKey : board.getBoardSettings().getTrackers().getKeys(false)) {
                     String entryValue = board.getBoardSettings().getTrackers().getString(entryKey, "%sorter%");
                     String value = PlaceholderAPI.setPlaceholders(player, entryValue).replace("%sorter%", sorter);
-                    if (entryValue.equals(value) || value.isEmpty()) // if any of the tracker is empty or return the same value,
-                        continue players_loop;                       // << continue to label (skip)
+                    if (!value.contains("%rank%"))
+                        if (entryValue.equals(value) || value.isEmpty()) // if any of the tracker is empty or return the same value,
+                            continue players_loop;                       // << continue to label (skip)
                     playerTrackers.put(entryKey, value);
                 }
-                data.put(new PlayerId(name, uuid), new PlayerData(sorter, playerTrackers, -1));
+                data.put(new PlayerId(name, uuid), new PlayerData(sorter, playerTrackers));
             }
             if (forceOffline) {
                 players_loop:
@@ -140,11 +141,12 @@ public class BoardData {
                     for (String entryKey : board.getBoardSettings().getTrackers().getKeys(false)) {
                         String entryValue = board.getBoardSettings().getTrackers().getString(entryKey, "%sorter%");
                         String value = PlaceholderAPI.setPlaceholders(offlinePlayer, entryValue).replace("%sorter%", sorter);
-                        if (entryValue.equals(value) || value.isEmpty())
-                            continue players_loop; // << continue to label
+                        if (!value.contains("%rank%"))
+                            if (entryValue.equals(value) || value.isEmpty())
+                                continue players_loop; // << continue to label
                         playerTrackers.put(entryKey, value);
                     }
-                    data.put(new PlayerId(name, uuid), new PlayerData(sorter, playerTrackers, -1));
+                    data.put(new PlayerId(name, uuid), new PlayerData(sorter, playerTrackers));
                 }
             }
             this.asyncFutureData.complete(data);
